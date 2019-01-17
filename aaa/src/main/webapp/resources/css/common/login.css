@@ -1,0 +1,19 @@
+.logP{min-width:1000px;height:620px;padding-bottom:120px;background:#4cc2ea url(/resources/images/common/bg_log.png) 0 100% repeat-x;}
+.logP .inn,.footer{clear:both;width:1000px;margin:0 auto;overflow:hidden;}
+.footer{text-align:center;line-height:22px;}
+.logP .inn{height:620px;background:url(/resources/images/common/bg_log2.jpg) 0 40px no-repeat;}
+.logP .inn2{background-image:url(/resources/images/common/bg_log2_2.jpg);}
+.logP .inn3{background-image:url(/resources/images/common/bg_log4.jpg);}
+.dlC2,.dlC2 li{overflow:hidden;}
+.dlC2{float:right;width:286px;height:379px;padding:142px 45px 0;margin-top:40px;background:url(/resources/images/common/bg_log3.jpg) 0 0 no-repeat;}
+.dlC2 li{clear:both;width:100%;font:normal 14px/32px "microsoft yahei";text-align:center;}
+.an_dl{display:block;text-indent:-999px;width:265px;height:48px;margin:0 auto;background:url(/resources/images/common/bg_btn.png) 0 0 no-repeat;overflow:hidden;}
+.l_ts{color:#f60a41;}
+.dlC2 li.dl01,.dlC2 li.dl02{height:85px;}
+.dlC2 li.dl03{height:64px;}
+.dxC{color:#242729;}
+.dxC input{vertical-align:middle;}
+.wjmm{color:#969a9d;text-decoration:underline;}
+.d_input{position:relative;clear:both;font:normal 14px/32px "microsoft yahei";height:35px;overflow:hidden;text-shadow:1px 1px 1px #74b2c2;}
+.d_input .label{position:absolute;top:0;left:50px;z-index:1;color:#fff;}
+.d_input .inputC{position:absolute;z-index:5;top:0;right:0;font:normal 14px/16px "microsoft yahei";width:226px;color:#fff;padding:7px 10px 9px;background:none;border:none;outline:none;overflow:hidden;text-shadow:1px 1px 1px #74b2c2;}

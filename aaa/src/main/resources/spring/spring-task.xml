@@ -1,0 +1,26 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context-3.1.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
+    <task:annotation-driven/>
+    <context:annotation-config/>
+    <bean class="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor"/>
+    <context:component-scan base-package="com.ppfuns.aaa.service.clear_cache"/>
+    <bean id="taskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+		 <!-- 核心线程数，默认为1 -->
+		<property name="corePoolSize" value="32" />
+		  <!-- 最大线程数，默认为Integer.MAX_VALUE -->  
+		  <property name="maxPoolSize" value="64" />
+		  <!-- 队列最大长度，一般需要设置值>=notifyScheduledMainExecutor.maxNum；默认为Integer.MAX_VALUE -->  
+		<property name="queueCapacity" value="50000" />
+		
+		<property name="rejectedExecutionHandler">
+			<bean class="java.util.concurrent.ThreadPoolExecutor$CallerRunsPolicy" />
+		</property>
+		<property name="WaitForTasksToCompleteOnShutdown" value="true" />
+	</bean>
+</beans>

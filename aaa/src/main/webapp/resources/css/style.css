@@ -1,0 +1,27 @@
+input {
+    line-height: normal;color: #555;vertical-align: middle;
+    -webkit-border-radius: 3px;padding:4px 2.5px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;font-size: 13px;
+    line-height: 13px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+}
+select {
+    line-height: normal;color: #555;vertical-align: middle;
+    -webkit-border-radius: 3px;padding:4px 2.5px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;font-size: 13px;
+    line-height: 13px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+}
+option {
+    line-height: normal;color: #555;vertical-align: middle;
+    -webkit-border-radius: 3px;padding:4px 2.5px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;font-size: 13px;
+    line-height: 13px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+}

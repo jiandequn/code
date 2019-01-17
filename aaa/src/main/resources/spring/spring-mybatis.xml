@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/aop
+		http://www.springframework.org/schema/aop/spring-aop-3.2.xsd 
+		http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd 
+		http://www.springframework.org/schema/context 
+		http://www.springframework.org/schema/context/spring-context-3.2.xsd 
+		http://www.springframework.org/schema/tx 
+		http://www.springframework.org/schema/tx/spring-tx-3.2.xsd" default-lazy-init="true">
+     <!-- 用户中心 -->
+    <bean id="userCenter_sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="userCenterDataSource"/>
+        <property name="typeAliasesPackage"
+                  value="com.ppfuns.aaa.entity,com.ppfuns.aaa.entity.userCenter,com.ppfuns.base.core.entity"/>
+        <property name="configLocation" value="classpath:spring/mybatis-configuration.xml"/>
+        <property name="mapperLocations">
+            <list>
+                <value>classpath*:mapper/user_center/*.xml</value>
+            </list>
+        </property>
+        <!--SQL执行效率-->
+        <property name="plugins">
+            <array>
+                <bean class="com.ppfuns.mybatis.plugin.PerformanceInterceptor">
+                </bean>
+            </array>
+        </property>
+    </bean>
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.ppfuns.aaa.dao.userCenter"/>
+        <property name="sqlSessionFactoryBeanName" value="userCenter_sqlSessionFactory"/>
+    </bean>
+    <!-- 媒资管理 -->
+    <bean id="mediaAsset_sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="mediaAssetDataSource"/>
+        <property name="typeAliasesPackage"
+                  value="com.ppfuns.aaa.entity.mediaAsset"/>
+        <property name="configLocation" value="classpath:spring/mybatis-configuration.xml"/>
+        <property name="mapperLocations">
+            <list>
+                <value>classpath*:mapper/media_asset/*.xml</value>
+            </list>
+        </property>
+        <!--SQL执行效率-->
+        <property name="plugins">
+            <array>
+                <bean class="com.ppfuns.mybatis.plugin.PerformanceInterceptor">
+                </bean>
+            </array>
+        </property>
+    </bean>
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.ppfuns.aaa.dao.mediaAsset"/>
+        <property name="sqlSessionFactoryBeanName" value="mediaAsset_sqlSessionFactory"/>
+    </bean>
+    <!-- boss管理 -->
+    <bean id="boss_sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="bossDataSource"/>
+        <property name="typeAliasesPackage"
+                  value="com.ppfuns.aaa.entity,com.ppfuns.aaa.entity.boss"/>
+        <property name="configLocation" value="classpath:spring/mybatis-configuration.xml"/>
+        <property name="mapperLocations">
+            <list>
+                <value>classpath*:mapper/boss/*.xml</value>
+            </list>
+        </property>
+        <!--SQL执行效率-->
+        <property name="plugins">
+            <array>
+                <bean class="com.ppfuns.mybatis.plugin.PerformanceInterceptor">
+                </bean>
+            </array>
+        </property>
+    </bean>
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.ppfuns.aaa.dao.boss"/>
+        <property name="sqlSessionFactoryBeanName" value="boss_sqlSessionFactory"/>
+    </bean>
+    <!--新版本结构配置-->
+    <bean class="com.ppfuns.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.ppfuns.aaa.dao"/>
+        <property name="markerInterface" value="com.ppfuns.base.core.dao.BaseDao"/>
+        <property name="sqlSessionFactoryBeanName" value="userCenter_sqlSessionFactory,boss_sqlSessionFactory,mediaAsset_sqlSessionFactory"/>
+        <property name="properties">
+            <value>
+                mappers=com.ppfuns.base.core.dao.BaseDao
+                INDENTITY=MYSQL
+            </value>
+        </property>
+    </bean>
+</beans>

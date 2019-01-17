@@ -1,0 +1,81 @@
+body {
+	margin: 0;
+	font-size: 13px;
+	line-height: 150%;
+	font-family: Consolas, Monospace;
+}
+
+a {
+	color: #00F;
+	text-decoration: none;
+	padding: 10px;
+}
+
+input {
+	font-size: 13px;
+	font-family: Consolas, Courier;
+}
+
+.movie_return_area {
+	font-size: 13px;
+	font-family: Consolas, Monospace;
+}
+
+.name_return_area {
+	font-size: 13px;
+	font-family: Consolas, Monospace;
+}
+
+#menu {
+	border: 1px solid #EEE;
+	width: 90%;
+	margin: 0px auto;
+}
+
+#menu li {
+	border: 1px solid #EEE;
+	padding: 10px 10px 10px 10px;
+}
+
+.api_block {
+	border: 1px solid #eee;
+	background: #fff;
+	margin: 0px auto;
+	width: 90%;
+}
+
+.api_result,.api_params,.api_name,.api_method,.api_validate,.api_url,.api_desc,.api_params
+	{
+	background: #ececec;
+	padding: 3px;
+	margin-bottom: 5px;
+	color: #000;
+}
+
+.api_name {
+	font-size: 14px;
+	background: url(/resources/img/menu.jpg) repeat;
+	color: #fff;
+}
+
+.return_area{font-size:13px;font-family:Consolas, Monospace;}
+
+.notes {color:red; font-style:italic; font-size:12px;}
+
+.ObjectBrace{color:#00AA00;font-weight:bold;}
+.ArrayBrace{color:#0033FF;font-weight:bold;}
+.PropertyName{color:#000000;font-weight:bold;}
+.String{color:#007766;}
+.Number{color:#FF0000;}
+.Boolean{color:#0000FF;}
+.Function{color:#AA6633;text-decoration:italic;}
+.Null{color:#0000FF;}
+.Comma{color:#000000;font-weight:bold;}
+PRE.CodeContainer{margin-top:0px;margin-bottom:0px;}
+PRE.CodeContainer img{cursor:pointer;border:none;margin-bottom:-1px;}
+A.OtherToolsLink { color:#555;text-decoration:none; }
+A.OtherToolsLink:hover { text-decoration:underline; }
+#RespCode li{border:1px solid #EEE;padding: 10px 10px 10px 10px;width: 50%;list-style-type:none;}
+.versiontable{border-collapse: collapse;border: 1px solid #DDDDDD;}
+.versiontable td{border: 1px solid #DDDDDD;line-height: 18px;}
+table td{ height:30px; border:#CCCCCC 1px solid;}
