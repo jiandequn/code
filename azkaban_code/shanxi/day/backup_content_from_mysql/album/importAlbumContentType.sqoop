@@ -1,0 +1,18 @@
+sqoop import \
+-Dmapreduce.job.queuename=${yarn_queue} \
+--connect "${user_mysql_url}?useUnicode=true&characterEncoding=utf-8" \
+--username ${user_mysql_username} \
+--password ${user_mysql_password} \
+--query 'select b.parameter_value,b.parameter_name FROM t_public_parameter b where $CONDITIONS and EXISTS(select 1 from t_public_parameter a WHERE a.parameter_code="CONTENT_TYPE" and a.parameter_id=b.parent_id)' \
+--driver com.mysql.jdbc.Driver \
+--fields-terminated-by '\t' \
+--delete-target-dir \
+--target-dir "/${hive_province}/sqoop/tmp/album_content_type_tmp" \
+--num-mappers 1 \
+--hive-import \
+--hive-database $hive_db \
+--hive-table album_content_type_tmp \
+--hive-overwrite \
+--outdir ${sqoop_outdir}/mr_java
+
+#如果num-mappers设置多个，必须指定mysql表字段进行 --split-by 'parameter_value' \

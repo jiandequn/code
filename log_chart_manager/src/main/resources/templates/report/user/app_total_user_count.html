@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <base th:href="${#request.getContextPath()}+'/'">
+</head>
+<body>
+<header th:fragment="app_total_user_count" th:with="title='专区累计访问用户数'">
+    <form id="searchAppTotalUserCountForm" class="layui-form layui-form-pane" method="post" action="" lay-filter="searchAppTotalUserCountFormFilter">
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">用户类型</label>
+                <div class="layui-input-inline">
+                    <select id="userType" name="userType" lay-verify="required" lay-filter="userType4Filter">
+                        <option label="OTT" th:selected="${ppfuns.userType=='OTT'}" >OTT</option>
+                        <option label="VOD" th:selected="${ppfuns.userType=='VOD'}">VOD</option>
+                    </select>
+                </div>
+            </div>
+            <div class="layui-inline">
+                <label class="layui-form-label">专区</label>
+                <div class="layui-input-inline" style="width: 300px;">
+                    <div id="parentColumnIds" style="width: 300px; "></div>
+                </div>
+            </div>
+            <div class="layui-inline">
+                <label class="layui-form-label">截至时间</label>
+                <div class="layui-input-inline" style="width: 100px;">
+                    <input name="endDate" id="insertTimeEnd" placeholder="yyyy-MM-dd" autocomplete="off"
+                           class="layui-input" type="text"/>
+                </div>
+            </div>
+            <div class="layui-inline">
+                <label class="layui-form-label">区域</label>
+                <div class="layui-input-inline" style="width: 300px;">
+                    <div id="areaCodes" style="width: 300px; "></div>
+                </div>
+            </div>
+            <button id="resetAppTotalUserCount" type="reset" class="layui-btn" hidden="hidden" style="display:none;">重置</button>
+            <button id="searchAppTotalUserCountSubmit" class="layui-btn" lay-submit="" lay-filter="searchAppTotalUserCountSubmit" hidden="hidden" style="display:none;">查询</button>
+        </div>
+    </form>
+        <script type="text/html" id="toolbarAppTotalUserCount">
+            <div class="layui-btn-container">
+                <button  class="layui-btn layui-btn-primary layui-btn-sm" onclick='$("#resetAppTotalUserCount").trigger("click");'>重置</button>
+                <button  class="layui-btn layui-btn-sm" onclick='$("#searchAppTotalUserCountSubmit").trigger("click");' >查询</button>
+            </div>
+        </script>
+        <table id="appTotalUserCountList" lay-filter="appTotalUserCountTable"></table>
+        <script type="text/javascript" th:src="@{/js/report/common.js}"></script>
+        <script th:src="@{/js/dateUtils.js}"></script>
+        <script>
+            var cur_p4={
+                tableIns:null,
+                pageCurr:0,
+                productColumnArr:initProductColumnSelect("searchAppTotalUserCountForm #parentColumnId",true),
+                tableSort : [{field: 'parentColumnId', type: 'desc'}]
+            }
+            layui.use(['form', 'laydate', 'element', 'table'], function () {
+                var form = layui.form;
+                var laydate = layui.laydate;
+                laydate.render({
+                    elem: '#searchAppTotalUserCountForm #insertTimeEnd'
+                    ,trigger: 'click'//添加属性
+                    ,value:getYesterday()
+                    ,max:getYesterday()
+                });
+                form.render("select");
+                form.on('select(userType4Filter)', function(data){
+                    initSxSelect(xmSelect,"searchAppTotalUserCountForm #areaCodes",data.value)
+                });
+                form.on('submit(searchAppTotalUserCountSubmit)', function (data) {
+                    queryTablePageByOrderby(cur_p4.tableIns,data,cur_p4.pageCurr,cur_p4.tableSort)
+                    return false;
+                });
+            });
+            //加载组件
+            layui.config({
+                base: '../../layui/extend/'
+            }).extend({
+                xmSelect: 'xm-select'
+            }).use(['xmSelect'], function(){
+                if(!xmSelect){
+                    xmSelect = layui.xmSelect;
+                }
+                initSxSelectParentColumnId(xmSelect,"searchAppTotalUserCountForm #parentColumnIds")
+                //渲染多选
+                initSxSelect(xmSelect,"searchAppTotalUserCountForm #areaCodes",$('#searchAppTotalUserCountForm #userType').find("option:selected").val());
+            });
+            layui.use('table', function () {
+                var table = layui.table;
+                cur_p4.tableIns = table.render({
+                    elem: '#appTotalUserCountList'
+                    , url: 'app_total_user_count/list'
+                    , method: 'post' //默认：get请求
+                    , cellMinWidth: 80
+                    , height: 'full-200'
+                    , page: true
+                    ,totalRow:true
+                    ,toolbar: '#toolbarAppTotalUserCount' //开启头部工具栏，并为其绑定左侧模板
+                    ,defaultToolbar: ['filter', 'print', 'exports']
+                    , where: {
+                        userType: $('#searchAppTotalUserCountForm #userType').find("option:selected").val(),
+                        orderby:getOrderByParams(cur_p4.tableIns,cur_p4.tableSort),
+                        endDate:getYesterday()
+                    }
+                    , request: {
+                        pageName: 'page' //页码的参数名称，默认：page
+                        , limitName: 'limit' //每页数据量的参数名，默认：limit
+                    }
+                    , response: {
+                        statusName: 'status' //数据状态的字段名称，默认：code
+                        , statusCode: 200 //成功的状态码，默认：0
+                        , countName: 'total' //数据总数的字段名称，默认：count
+                        , dataName: 'rows' //数据列表的字段名称，默认：data
+                    }
+                    , cols: [
+                        [{type: 'numbers'}
+                            , {field: 'createTime', title: '截至日期',sort:true}
+                            , {field: 'userType', title: '用户类型'}
+                            , {field: 'parentColumnId', title: '专区ID',sort:true,totalRowText: '所有专区合计用户数'}
+                            , {
+                            field: 'parentColumnName', title: '专区名称', templet: function (r) {
+                                var parentColumnName = '';
+                                $.each(cur_p4.productColumnArr, function (index, item) {
+                                    if (item.columnId == r.parentColumnId) parentColumnName = item.columnName;
+                                });
+                                return parentColumnName;
+                            }
+                        }
+                            // , {field: 'area_code', title: '区域码',sort:true}
+                            // , {field: 'area_name', title: '区域名称'}
+                            , {field: 'userId', title: '累计用户数',sort: true}
+                        ]
+                    ]
+                    , done: function (res, curr, count) {
+                        cur_p.pageCurr = curr;
+                    }
+                });
+            });
+        </script>
+</header>
+</body>
+</html>

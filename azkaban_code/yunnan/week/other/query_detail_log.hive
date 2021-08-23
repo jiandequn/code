@@ -1,0 +1,10 @@
+set hive.auto.convert.join=true;
+insert overwrite table detail_page_log
+select t.parent_column_id,user_type,mac,sn,user_id,t.column_id,t.album_id,
+a.content_type,after_column_id,after_column_code,tcm.column_name as after_column_name,area_code,
+t.create_time,a.album_name,act.content_type_name,split(a.labels,'\\|')[1] as labels from (
+   select parent_column_id,user_type,mac,sn,user_id,split(param['nowSpm'],'\\.')[2] as column_id,split(param['nowSpm'],'\\.')[3] as album_id,1 as content_type,split(param['afterSpm'],'\\.')[2] after_column_id,split(param['afterSpm'],'\\.')[1] as after_column_code,area_code,create_time from events_type_log
+   where events_type='PAGE_ALBUM_DETAILS' and create_time>='${startDate}' and create_time<'${endDate}') as t
+   left join album a on a.album_id=t.album_id
+   left join t_column_management tcm  ON tcm.column_id=t.after_column_id
+   left join album_content_type act on act.content_type=a.content_type;

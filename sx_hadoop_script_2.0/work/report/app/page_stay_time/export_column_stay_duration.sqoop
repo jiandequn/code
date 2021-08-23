@@ -1,0 +1,13 @@
+sqoop export \
+--connect '%(db_url)s' \
+--username %(db_username)s \
+--password-file  %(db_pwdfile)s \
+--export-dir /%(hive_province)s/hive/reports/app/column_stay_duration/total \
+--table app_column_stay_duration \
+--columns t_date,parent_column_id,before_column_id,before_column_code,before_column_name,user_count,stay_duration \
+--update-key t_date,parent_column_id,before_column_id \
+--update-mode allowinsert \
+--input-null-string '\\N'  \
+--input-null-non-string '\\N' \
+--input-fields-terminated-by '\t' \
+--outdir %(sqoop_outdir)s/mr_java

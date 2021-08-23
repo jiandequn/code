@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.dao.ScheduleJobMapper" >
+  <resultMap id="BaseResultMap" type="com.example.model.ScheduleJob" >
+    <id column="job_id" property="jobId" jdbcType="BIGINT" />
+    <result column="job_name" property="jobName" jdbcType="VARCHAR" />
+    <result column="job_group" property="jobGroup" jdbcType="VARCHAR" />
+    <result column="is_concurrent" property="isConcurrent" jdbcType="TINYINT" />
+    <result column="cron_expression" property="cronExpression" jdbcType="VARCHAR" />
+    <result column="spring_id" property="springId" jdbcType="VARCHAR" />
+    <result column="bean_class" property="beanClass" jdbcType="VARCHAR" />
+    <result column="method_name" property="methodName" jdbcType="VARCHAR" />
+    <result column="runing_status" property="runingStatus" jdbcType="TINYINT" />
+    <result column="job_status" property="jobStatus" jdbcType="TINYINT" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="is_effective" property="isEffective" jdbcType="TINYINT" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    job_id, job_name, job_group, is_concurrent, cron_expression, spring_id, bean_class, 
+    method_name, runing_status, job_status, create_time, update_time,is_effective
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from schedule_job
+    where job_id = #{jobId,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from schedule_job
+    where job_id = #{jobId,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.example.model.ScheduleJob" >
+    insert into schedule_job (job_id, job_name, job_group, 
+      is_concurrent, cron_expression, spring_id, 
+      bean_class, method_name, runing_status, 
+      job_status, create_time, update_time,is_effective
+      )
+    values (#{jobId,jdbcType=BIGINT}, #{jobName,jdbcType=VARCHAR}, #{jobGroup,jdbcType=VARCHAR}, 
+      #{isConcurrent,jdbcType=TINYINT}, #{cronExpression,jdbcType=VARCHAR}, #{springId,jdbcType=VARCHAR}, 
+      #{beanClass,jdbcType=VARCHAR}, #{methodName,jdbcType=VARCHAR}, #{runingStatus,jdbcType=TINYINT}, 
+      #{jobStatus,jdbcType=TINYINT}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP} , #{isEffective,jdbcType=TINYINT}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.example.model.ScheduleJob" >
+    insert into schedule_job
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="jobId != null" >
+        job_id,
+      </if>
+      <if test="jobName != null" >
+        job_name,
+      </if>
+      <if test="jobGroup != null" >
+        job_group,
+      </if>
+      <if test="isConcurrent != null" >
+        is_concurrent,
+      </if>
+      <if test="cronExpression != null" >
+        cron_expression,
+      </if>
+      <if test="springId != null" >
+        spring_id,
+      </if>
+      <if test="beanClass != null" >
+        bean_class,
+      </if>
+      <if test="methodName != null" >
+        method_name,
+      </if>
+      <if test="runingStatus != null" >
+        runing_status,
+      </if>
+      <if test="jobStatus != null" >
+        job_status,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+      <if test="isEffective != null" >
+        is_effective,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="jobId != null" >
+        #{jobId,jdbcType=BIGINT},
+      </if>
+      <if test="jobName != null" >
+        #{jobName,jdbcType=VARCHAR},
+      </if>
+      <if test="jobGroup != null" >
+        #{jobGroup,jdbcType=VARCHAR},
+      </if>
+      <if test="isConcurrent != null" >
+        #{isConcurrent,jdbcType=TINYINT},
+      </if>
+      <if test="cronExpression != null" >
+        #{cronExpression,jdbcType=VARCHAR},
+      </if>
+      <if test="springId != null" >
+        #{springId,jdbcType=VARCHAR},
+      </if>
+      <if test="beanClass != null" >
+        #{beanClass,jdbcType=VARCHAR},
+      </if>
+      <if test="methodName != null" >
+        #{methodName,jdbcType=VARCHAR},
+      </if>
+      <if test="runingStatus != null" >
+        #{runingStatus,jdbcType=TINYINT},
+      </if>
+      <if test="jobStatus != null" >
+        #{jobStatus,jdbcType=TINYINT},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="isEffective != null" >
+        #{isEffective,jdbcType=TINYINT},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.example.model.ScheduleJob">
+    update schedule_job
+    <set >
+      <if test="jobName != null" >
+        job_name = #{jobName,jdbcType=VARCHAR},
+      </if>
+      <if test="jobGroup != null" >
+        job_group = #{jobGroup,jdbcType=VARCHAR},
+      </if>
+      <if test="isConcurrent != null" >
+        is_concurrent = #{isConcurrent,jdbcType=TINYINT},
+      </if>
+      <if test="cronExpression != null" >
+        cron_expression = #{cronExpression,jdbcType=VARCHAR},
+      </if>
+      <if test="springId != null" >
+        spring_id = #{springId,jdbcType=VARCHAR},
+      </if>
+      <if test="beanClass != null" >
+        bean_class = #{beanClass,jdbcType=VARCHAR},
+      </if>
+      <if test="methodName != null" >
+        method_name = #{methodName,jdbcType=VARCHAR},
+      </if>
+      <if test="runingStatus != null" >
+        runing_status = #{runingStatus,jdbcType=TINYINT},
+      </if>
+      <if test="jobStatus != null" >
+        job_status = #{jobStatus,jdbcType=TINYINT},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="isEffective != null" >
+        is_effective = #{isEffective,jdbcType=TINYINT},
+      </if>
+    </set>
+    where job_id = #{jobId,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.example.model.ScheduleJob"  >
+    update schedule_job
+    set job_name = #{jobName,jdbcType=VARCHAR},
+      job_group = #{jobGroup,jdbcType=VARCHAR},
+      is_concurrent = #{isConcurrent,jdbcType=TINYINT},
+      cron_expression = #{cronExpression,jdbcType=VARCHAR},
+      spring_id = #{springId,jdbcType=VARCHAR},
+      bean_class = #{beanClass,jdbcType=VARCHAR},
+      method_name = #{methodName,jdbcType=VARCHAR},
+      runing_status = #{runingStatus,jdbcType=TINYINT},
+      job_status = #{jobStatus,jdbcType=TINYINT},
+      create_time = #{createTime,jdbcType=TIMESTAMP}, is_effective = #{isEffective,jdbcType=TINYINT},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where job_id = #{jobId,jdbcType=BIGINT}
+  </update>
+  <select id="getList" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+  select
+  <include refid="Base_Column_List" />
+  from schedule_job
+</select>
+  <select id="getListByPage" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select
+    <include refid="Base_Column_List" />
+    from schedule_job
+    where  1=1
+    <if test="jobName != null and jobName != ''" >
+      and job_name like concat(#{jobName,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="jobGroup != null and jobGroup !=''" >
+      and job_group like concat(#{jobGroup,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="insertTimeEnd != null and insertTimeEnd != ''" >
+      and create_time  <![CDATA[ <=#{insertTimeEnd} ]]>
+    </if>
+    <if test="insertTimeStart != null and insertTimeStart !=''" >
+      and create_time  <![CDATA[ >= #{insertTimeStart} ]]>
+    </if>
+  </select>
+  <select id="select" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select
+    <include refid="Base_Column_List" />
+    from schedule_job
+    where  1=1
+    <if test="jobName != null and jobName != ''" >
+      and job_name =#{jobName,jdbcType=VARCHAR}
+    </if>
+    <if test="jobGroup != null and jobGroup !=''" >
+      and job_group = #{jobGroup,jdbcType=VARCHAR}
+    </if>
+  </select>
+</mapper>

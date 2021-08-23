@@ -1,0 +1,27 @@
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.groupby.orderby.position.alias=true; -- 启用别名对于groupby和orderby
+set hive.vectorized.execution.enabled=false; --控制是否启用查询执行的向量模式 否则 报异常 java.lang.AssertionError: Output column number expected to be 0 when isRepeating
+
+-- 媒资收藏排行前10
+-- 用户收藏记录操作（新增和删除）信息 op_state 1表示新增，-1表示取消 存储每日的信息好跟踪
+create TEMPORARY table app_bookmark_rank_week_tmp as
+select a1.y,a1.w,a1.parent_column_id,a1.album_id,sum(a1.op_state) as count from(
+select a.y,a.w,a.parent_column_id,a.user_type,a.sn,a.album_id,sum(op_state) op_state from(
+select parent_column_id ,user_type,sn,param["contentId"] as album_id
+,if(param["operateType"]='add',1,-1) as op_state,year(date_sub(next_day(concat(y,'-',m,'-',d),'MO'),4)) as y,weekofyear(concat(y,'-',m,'-',d)) as w
+from events_type_log
+where events_type ='COLUMN_TYPE_BOOK_MARK' and concat(y,'-',m,'-',d)>='${startDate}'
+and concat(y,'-',m,'-',d)<'${endDate}' and param["operateType"] in('add','del'))a
+group by a.y,a.w,a.parent_column_id,a.user_type,a.sn,a.album_id)a1
+where a1.op_state=1
+group by a1.y,a1.w,a1.parent_column_id,a1.album_id;
+
+
+insert overwrite table app_bookmark_rank_week
+select t.y,t.w,t.parent_column_id,t.album_id,a.album_name,a.content_type,act.content_type_name,t.count from(
+select y,w,parent_column_id,album_id,count,
+  dense_rank() OVER (partition by y,w,parent_column_id ORDER BY count desc) rank from app_bookmark_rank_week_tmp)t
+ left join album a on a.album_id=t.album_id
+ left join album_content_type act on act.content_type=a.content_type
+  where t.rank<=20;

@@ -1,0 +1,15 @@
+# query hive不支持- -create-hive-table
+sqoop import \
+--connect '%(db_url)s' \
+--username %(db_username)s \
+--password-file  %(db_pwdfile)s \
+--table user_info \
+--driver com.mysql.jdbc.Driver \
+--fields-terminated-by '\t' \
+--delete-target-dir \
+--num-mappers 1 \
+--hive-import \
+--hive-database %(hivedb)s \
+--hive-table user_info \
+--hive-overwrite \
+--outdir %(sqoop_outdir)s/mr_java

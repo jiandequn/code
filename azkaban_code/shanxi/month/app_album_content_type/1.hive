@@ -1,0 +1,18 @@
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.groupby.orderby.position.alias=true; -- 启用别名对于groupby和orderby
+-- 计算 专辑播放情况 按周
+insert overwrite table app_album_content_type_month
+select y,m,user_type,parent_column_id,a1.content_type,act.content_type_name,user_count,play_count,duration from(
+select y,m,user_type,parent_column_id,content_type,count(distinct user_id) as user_count,sum(1) as play_count,
+sum(duration) as duration
+from app_album_play_log aa
+left join album a on a.album_id=aa.album_id
+where concat(y,'-',m,'-',d)>='${startDate}'
+and concat(y,'-',m,'-',d)<'${endDate}' group by 1,2,3,4,5 cluster by 4,5) a1
+left join album_content_type act on act.content_type=a1.content_type;
+
+
+
+
+

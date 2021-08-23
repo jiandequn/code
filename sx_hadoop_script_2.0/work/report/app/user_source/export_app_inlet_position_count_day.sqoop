@@ -1,0 +1,13 @@
+sqoop export \
+--connect '%(db_url)s' \
+--username %(db_username)s \
+--password-file  %(db_pwdfile)s \
+--export-dir /%(hive_province)s/hive/reports/app/inlet_position/day \
+--table app_inlet_position_count_day \
+--columns t_date,user_type,events_type,parent_column_id,spm,user_count,visit_count \
+--update-key t_date,user_type,events_type,parent_column_id,spm \
+--update-mode allowinsert \
+--input-null-string '\\N'  \
+--input-null-non-string '\\N' \
+--input-fields-terminated-by '\t' \
+--outdir %(sqoop_outdir)s/mr_java

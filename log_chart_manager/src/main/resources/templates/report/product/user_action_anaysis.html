@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head th:include="layout :: htmlhead" th:with="title='清理用户管理'"></head>
+<form id="userActionAnaysisSearch" class="layui-form layui-form-pane" method="post" action="" style="margin-top: 20px;">
+    <div class="layui-form-item">
+        <label class="layui-form-label">过滤信息</label>
+        <div class="layui-input-inline">
+            <input id="userName" name="userName" autocomplete="off" class="layui-input" type="text" placeholder="mac|sn|userId" lay-verify="required"/>
+        </div>
+        <label class="layui-form-label">路径</label>
+        <div class="layui-input-inline">
+            <input id="path" name="path" autocomplete="off" class="layui-input" type="text" placeholder="2020/12/22/23/*" lay-verify="required"/>
+        </div>
+        <label class="layui-form-label">用户唯一性</label>
+        <div class="layui-input-inline">
+            <select name="uniqueSelect" lay-verify="required">
+                <option value="mac" selected>MAC地址</option>
+                <option value="sn">SN序列号</option>
+                <option value="userId">用户ID</option>
+            </select>
+        </div>
+        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        <button class="layui-btn" lay-submit="" lay-filter="searchSubmit">查询</button>
+        <button type="button" class="layui-btn" onclick="showInfo()">
+            <i class="layui-icon">&#xe64e;</i>
+        </button>
+    </div>
+</form>
+<div id="userActionAnaysis" class="layui-container">
+</div>
+
+<script type="application/javascript">
+    var currentData=null;
+    function load(param){
+        var index = layer.load(2, {time: 30*1000});;
+        $.get("get",param,function(res){
+            if(1 == res.code){
+                var data=res.result;
+                currentData=data;
+                showAnsisInfo()
+            }
+            else {
+                $("#userActionAnaysis").append("查找信息:<br/>"+res.msg);
+            }
+            layer.close(index);
+        });
+    }
+    //搜索框
+    layui.use(['form'], function(){
+        form = layui.form ,layer = layui.layer;
+        //TODO 数据校验
+        //监听搜索框
+        form.on('submit(searchSubmit)', function(data){
+            $("#userActionAnaysis").empty();
+             load(data.field)
+            return false;
+        });
+
+    });
+    function showAnsisInfo(){
+        $("#userActionAnaysis").empty();
+        if(currentData){
+            for(i in currentData){
+                var user = currentData[i];
+                var titleText="用户["+user.username+"];类型["+user.userType+"];区域码["+user.areaCode+"];产品["+user.parentColumnId+"]"
+                var title=$('<fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;font-weight:bold"><legend>'+titleText+'</legend></fieldset>');
+                var timeContent=$('<ul class="layui-timeline" type=""></ul>');
+                for(j in user.timeSortList){ //时间操作
+                    var time=user.timeSortList[j];
+                    var ctext=' <li class="layui-timeline-item"><i class="layui-icon layui-timeline-axis"></i><div class="layui-timeline-content layui-text">'
+                        +'<h3 class="layui-timeline-title">'+time+'</h3><ul>';
+                    for(k in user.sortTimeMap[time]){
+                        var content=user.sortTimeMap[time][k];
+                        var t_content=$.extend({}, content);
+                        delete t_content.createTime;
+                        delete t_content.seq;
+                        ctext=ctext+"<li>"+JSON.stringify(t_content).replaceAll('"','')+"</li>"
+                    }
+                    ctext=ctext+' </ul> </div> </li>'
+                    timeContent.append(ctext);
+                }
+                $("#userActionAnaysis").append(title,timeContent);
+            }
+        }
+
+    }
+    function showInfo(){
+        $("#userActionAnaysis").empty();
+        var preContent=$('<pre class="layui-code" lay-title="采集日志数据" lay-skin="notepad"></pre>');
+        preContent.append()
+        var ctext="";
+        if(currentData){
+            for(i in currentData){
+                var user = currentData[i];
+                for(j in user.timeSortList){
+                    var time=user.timeSortList[j];
+                    for(k in user.sortTimeMap[time]){
+                        var content=user.sortTimeMap[time][k];
+                        var t_content=$.extend({}, content);
+                        delete t_content.createTime;
+                        delete t_content.seq;
+                        ctext=ctext+JSON.stringify(t_content).replaceAll('"','')+"\n";
+                    }
+                }
+                ctext=ctext+"\n"
+            }
+        }else {
+            ctext="无内容；先获取内容"
+        }
+
+        preContent.append(ctext)
+        $("#userActionAnaysis").append(preContent);
+        // layer.open({
+        //     title: '采集日志'
+        //     ,area: ['500px', '300px']
+        //     ,maxmin:true
+        //     ,resize:true
+        //     ,content: preContent
+        // });
+    }
+</script>
+</html>

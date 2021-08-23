@@ -1,0 +1,23 @@
+
+sqoop eval \
+-Dmapreduce.job.queuename=${yarn_queue} \
+--connect "${mysql_url}?useUnicode=true&characterEncoding=utf-8" \
+--username ${mysql_username} \
+--password ${mysql_password} \
+--metadata-transaction-isolation-level 'TRANSACTION_REPEATABLE_READ' \
+--query "delete from app_draw_prize_count_week where (y>=YEAR(subdate('${startDate}',WEEKDAY('${startDate}')-3)) AND w >= WEEKOFYEAR('${startDate}')) AND (y<=YEAR(subdate('${endDate}',WEEKDAY('${endDate}') - 3)) AND w < WEEKOFYEAR('${endDate}'))"
+
+sqoop export \
+-Dmapreduce.job.queuename=${yarn_queue} \
+--connect "${mysql_url}?useUnicode=true&characterEncoding=utf-8" \
+--username ${mysql_username} \
+--password ${mysql_password} \
+--export-dir /${hive_province}/hive/reports/app/draw_prize/count/week \
+--table app_draw_prize_count_week \
+--columns y,w,user_type,parent_column_id,draw_user_count,draw_count,drawed_user_count,drawed_count \
+--update-key y,w,user_type,parent_column_id \
+--update-mode allowinsert \
+--input-null-string '\\N'  \
+--input-null-non-string '\\N' \
+--input-fields-terminated-by '\t' \
+--outdir ${sqoop_outdir}/mr_java

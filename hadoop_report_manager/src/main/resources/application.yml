@@ -1,0 +1,36 @@
+spring:
+  thymeleaf:
+    cache: false
+    encoding: UTF-8
+    prefix: classpath:/templates/
+    suffix: html
+    mode: HTML5    ## 模板格式
+    content-type: text/html
+#logging:
+##  config: classpath:/logback.xml
+#  level:
+#    root: WARN     #root日志以WARN级别输出
+#    org:
+#      springframework:
+#        web:  DEBUG     #springframework.web日志以DEBUG级别输出
+#自定义属性
+ppfuns:
+  database: hadoop_mr
+  hadoop:
+    jar: /usr/local/hadoop/hadoop_mr_center.jar
+    class: com.jshy.mr.log.album_play.AlbumPlayLogApp:播放记录日志,com.jshy.mr.report.user_info.UserInfoApp:用户信息,com.jshy.mr.report.global_user.GlobalUserApp:按周专区用户数,com.jshy.mr.log.detail_page.DetailPageLogApp:详情日志,com.jshy.mr.log.first_page.FirstPageLogApp:首页日志,com.jshy.mr.report.user_stay_duration.UserStayDurationApp:用户按周停留时长
+
+
+
+#mybatis:
+#  configuration:
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+mybatis-plus:
+  mapper-locations: classpath*:mapper/*.xml
+  type-aliases-package: com.ppfuns.entity.report
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      db-type: MYSQL
+      id-type: 0

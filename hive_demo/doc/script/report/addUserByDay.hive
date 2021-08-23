@@ -1,0 +1,21 @@
+-- job描述：新增访问用户
+-- 进入数据库
+use yn_hadoop;
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+-- 1、按天去重 日访问用户信息
+    insert into visit_user_page_day partition(y,m,d)  select distinct data["parentColumnId"] as parentColumnId,userType,mac,sn,userId ,'' areaCode,y,m,d from events_type_log
+    where eventsType in ('operationDetails','operationPage');
+
+-- 2、按天 新增日用户
+       insert into user_info select v.parentColumnId as parent_column_id,v.userType user_type,v.mac,v.sn,v.userId user_id,v.areaCode area_code,concat(y,m,d) as create_time from visit_user_page_day v
+       left join user_info u on u.user_id=v.userId
+       where u.user_id is null;
+
+-- 3、日访问用户数
+   insert into visit_user_count_day select concat(y,m,d) as t_date,userType,parentColumnId,count(1) as usercount from visit_user_page_day group by y,m,d,userType,parentColumnId;
+
+-- 专区 日播放用户数
+    insert into visit_user_play_day partition(y,m,d)  select data["parentColumnId"] as parentColumnId,userType,mac,sn,userId ,'' areaCode,y,m,d from events_type_log
+      where eventsType in ('operationDetails','operationPage') group by y,m,d,mac,sn,userId,userType,data["parentColumnId"];
+

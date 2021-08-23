@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <base th:href="${#request.getContextPath()}+'/'">
+</head>
+<body>
+<header th:fragment="app_area_list" th:with="title='专区区域新增用户数统计'">
+    <form id="searchAreaUserCountForm" class="layui-form layui-form-pane" method="post" action="" lay-filter="searchAreaUserCountFormFilter">
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">用户类型</label>
+                <div class="layui-input-inline">
+                    <select id="userType" name="userType" lay-verify="required">
+                        <option label="OTT" th:selected="${ppfuns.userType=='OTT'}" >OTT</option>
+                        <option label="VOD" th:selected="${ppfuns.userType=='VOD'}">VOD</option>
+                    </select>
+                </div>
+            </div>
+            <div class="layui-inline">
+                <label class="layui-form-label">专区</label>
+                <div class="layui-input-inline">
+                    <select id="parentColumnId" name="parentColumnId">
+                    </select>
+                </div>
+            </div>
+            <div class="layui-inline">
+                <label class="layui-form-label">时间</label>
+                <div class="layui-input-inline" style="width: 100px;">
+                    <input name="startDate" id="insertTimeStart" placeholder="yyyy-MM-dd" autocomplete="off"
+                           class="layui-input" type="text"/>
+                </div>
+                <div class="layui-form-mid">-</div>
+                <div class="layui-input-inline" style="width: 100px;">
+                    <input name="endDate" id="insertTimeEnd" placeholder="yyyy-MM-dd" autocomplete="off"
+                           class="layui-input" type="text"/>
+                </div>
+            </div>
+            <div class="layui-inline">
+                <label class="layui-form-label">区域</label>
+                <div class="layui-input-inline" style="width: 300px;">
+                    <div id="areaCodes" style="width: 300px; "></div>
+                </div>
+            </div>
+            <button id="resetAreaUserCount" type="reset" class="layui-btn" hidden="hidden" style="display:none;">重置</button>
+            <button id="searchAreaUserCountSubmit" class="layui-btn" lay-submit="" lay-filter="searchAreaUserCountSubmit" hidden="hidden" style="display:none;">查询</button>
+        </div>
+    </form>
+        <script type="text/html" id="toolbarAreaUserCount">
+            <div class="layui-btn-container">
+                <button  class="layui-btn layui-btn-primary layui-btn-sm" onclick='$("#resetAreaUserCount").trigger("click");'>重置</button>
+                <button  class="layui-btn layui-btn-sm" onclick='$("#searchAreaUserCountSubmit").trigger("click");' >查询</button>
+            </div>
+        </script>
+        <table id="areaUserCountList" lay-filter="areaUserCountTable"></table>
+        <script type="text/javascript" th:src="@{/js/report/common.js}"></script>
+        <script th:src="@{/js/dateUtils.js}"></script>
+        <script>
+            var cur_p={
+                tableIns:null,
+                pageCurr:0,
+                productColumnArr:initProductColumnSelect("searchAreaUserCountForm #parentColumnId",true),
+                tableSort : [{field: 'tDate', type: 'desc'}]
+            }
+            layui.use(['form', 'laydate', 'element', 'table'], function () {
+                var form = layui.form;
+                var laydate = layui.laydate;
+                laydate.render({
+                    elem: '#searchAreaUserCountForm #insertTimeStart'
+                    , trigger: 'click'//添加属性
+                });
+                laydate.render({
+                    elem: '#searchAreaUserCountForm #insertTimeEnd'
+                    , trigger: 'click'//添加属性
+                });
+                form.render("select");
+                form.on('select(userType2Filter)', function(data){
+                    initSxSelect(xmSelect,"searchAreaUserCountForm #areaCodes",data.value)
+                });
+                form.on('submit(searchAreaUserCountSubmit)', function (data) {
+                    queryTablePageByOrderby(cur_p.tableIns,data,cur_p.pageCurr,cur_p.tableSort)
+                    return false;
+                });
+            });
+            //加载组件
+            layui.config({
+                base: '../../layui/extend/'
+            }).extend({
+                xmSelect: 'xm-select'
+            }).use(['xmSelect'], function(){
+                if(!xmSelect){
+                    xmSelect = layui.xmSelect;
+                }
+                //渲染多选
+                initSxSelect(xmSelect,"searchAreaUserCountForm #areaCodes",$('#searchAreaUserCountForm #userType').find("option:selected").val());
+            });
+            layui.use('table', function () {
+                var table = layui.table;
+                cur_p.tableIns = table.render({
+                    elem: '#areaUserCountList'
+                    , url: 'app_area_user_count/list'
+                    , method: 'post' //默认：get请求
+                    , cellMinWidth: 80
+                    , height: 'full-200'
+                    , page: true
+                    ,toolbar: '#toolbarAreaUserCount' //开启头部工具栏，并为其绑定左侧模板
+                    ,defaultToolbar: ['filter', 'print', 'exports']
+                    , autoSort: false
+                    , mutlSort:true
+                    , where: {
+                        userType: $('#searchAreaUserCountForm #userType').find("option:selected").val(),
+                        orderby:getOrderByParams(cur_p.tableIns,cur_p.tableSort)
+                    }
+                    , initSort: cur_p.tableSort
+                    , request: {
+                        pageName: 'page' //页码的参数名称，默认：page
+                        , limitName: 'limit' //每页数据量的参数名，默认：limit
+                    }
+                    , response: {
+                        statusName: 'status' //数据状态的字段名称，默认：code
+                        , statusCode: 200 //成功的状态码，默认：0
+                        , countName: 'total' //数据总数的字段名称，默认：count
+                        , dataName: 'rows' //数据列表的字段名称，默认：data
+                    }
+                    , cols: [
+                        [{type: 'numbers'}
+                            , {field: 't_date', title: '日期',sort:true}
+                            , {field: 'user_type', title: '用户类型'}
+                            , {field: 'parent_column_id', title: '专区ID',sort:true}
+                            , {
+                            field: 'parentColumnName', title: '专区名称', templet: function (r) {
+                                var parentColumnName = '';
+                                $.each(cur_p.productColumnArr, function (index, item) {
+                                    if (item.columnId == r.parent_column_id) parentColumnName = item.columnName;
+                                });
+                                return parentColumnName;
+                            }
+                        }
+                            , {field: 'area_code', title: '区域码',sort:true}
+                            , {field: 'area_name', title: '区域名称'}
+                            , {field: 'user_count', title: '新增用户数',sort: true}
+                        ]
+                    ]
+                    , done: function (res, curr, count) {
+                        cur_p.pageCurr = curr;
+                    }
+                });
+                //触发排序事件
+                table.on('sort(areaUserCountTable)', function (obj) { //注：sort 是工具条事件名，test 是 table 原始容器的属性 lay-filter="对应的值"
+                    cur_p.tableSort=obj;//等价于this.sortCols;或者${this}[0].sortCols
+                    $('#searchAreaUserCountSubmit').trigger("click");
+                });
+            });
+        </script>
+</header>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head th:include="layout :: htmlhead" th:with="title='区域新增用户占比'"></head>
+<form id="searchForm" class="layui-form layui-form-pane" method="post" action="" style="margin-top: 20px;">
+    <div class="layui-form-item">
+        <label class="layui-form-label">账户名</label>
+        <div class="layui-input-inline">
+            <select name="parentColumnId" lay-verify="required">
+                <option value=""></option>
+                <option value="0">北京</option>
+                <option value="1">上海</option>
+                <option value="2">广州</option>
+                <option value="3">深圳</option>
+                <option value="4">杭州</option>
+            </select>
+        </div>
+        <label class="layui-form-label">用户名</label>
+        <div class="layui-input-inline">
+            <input id="uname" name="userName" autocomplete="off" class="layui-input" type="text"/>
+        </div>
+        <label class="layui-form-label">手机号</label>
+        <div class="layui-input-inline">
+            <input id="umobile" name="umobile" autocomplete="off" class="layui-input" type="text"
+                   onkeyup="this.value=this.value.replace(/\D/g,'')"
+                   onafterpaste="this.value=this.value.replace(/\D/g,'')"/>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">添加时间</label>
+            <div class="layui-input-inline" style="width: 175px;">
+                <input name="insertTimeStart" id="insertTimeStart" placeholder="yyyy-MM-dd" autocomplete="off"
+                       class="layui-input" type="text"/>
+            </div>
+            <div class="layui-form-mid">-</div>
+            <div class="layui-input-inline" style="width: 175px;">
+                <input name="insertTimeEnd" id="insertTimeEnd" placeholder="yyyy-MM-dd" autocomplete="off"
+                       class="layui-input" type="text"/>
+            </div>
+            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            <button class="layui-btn" lay-submit="" lay-filter="searchSubmit">查询</button>
+
+        </div>
+    </div>
+</form>
+<hr class="layui-bg-black"/>
+<div style="display:none;" id="currentUser">
+    <shiro:principal property="id"></shiro:principal>
+</div>
+<script type="text/javascript" src="/js/report/common.js"></script>
+<script type="text/javascript" src="/highcharts/highcharts.js"></script>
+<script src="/highcharts/modules/exporting.js"></script>
+<script src="/highcharts/highcharts-zh_CN.js"></script>
+<script>
+    var productColumnArr = initProductColumnSelect("parentColumnId");
+    layui.use('form', function(){
+        var form = layui.form;
+        form.on('submit(searchSubmit)', function(data){
+            //重新加载table
+            load(data);
+            return false;
+        });
+
+    });
+    function chartFunc() {
+        var parentColumnId = $('#parentColumnId[name=parentColumnId]').val();
+        var parentColumnName = $('#parentColumnId[name=parentColumnId]').text();
+        $.ajax({
+            type: "GET",
+            data: $("#searchForm").serialize(),
+            url: "/sys/user/setUser",
+            success: function (data) {
+                var result = eval('(' + data + ')');  // change the JSON string to javascript object
+                var titleText = parentColumnName;
+                if (parentColumnId == '') {
+                    titleText = "周新访问用户数据(不分专区)";
+                } else {
+                    titleText = "<div style='text-shadow: 10px 10px 50px #000;'>" + parentColumnName + "</div>" + "周新增用户数据";
+                }
+                var chart = Highcharts.chart('container', {
+                    chart: {
+                        type: 'column'
+                    },
+                    title: {
+                        text: titleText
+                    },
+                    subtitle: {
+                        text: '数据来源: 聚视互娱日志采集'
+                    },
+                    xAxis: {
+                        categories: result.categories,
+                        crosshair: true
+                    },
+                    yAxis: {
+                        min: 0,
+                        title: {
+                            text: '周访问用户数'
+                        }
+                    },
+                    tooltip: {
+                        // head + 每个 point + footer 拼接成完整的 table
+                        headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+                        pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+                        '<td style="padding:0"><b>{point.y:.1f} 户</b></td></tr>',
+                        footerFormat: '</table>',
+                        shared: true,
+                        useHTML: true
+                    },
+                    plotOptions: {
+                        column: {
+                            borderWidth: 0
+                        }
+                    },
+                    series: result.series
+                });
+            }
+        });
+        $('#searchForm').form('submit', {
+            url:"/app/visit//chart/list",
+            success: function(data){
+
+            }
+        });
+    }
+    chartFunc();
+    $("#queryContent").unbind().click(function () {
+        chartFunc();
+    });
+</script>
+</html>

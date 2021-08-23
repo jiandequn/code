@@ -1,0 +1,18 @@
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+insert overwrite table album_play_log_tmp
+select mac,sn,
+concat_ws(',', sort_array(collect_set(concat(unix_timestamp(u_time),'_',column_id,'_',album_id,'_',video_id,'_',content_type,'_',status,'_',comsume_time)))) as tdata
+from sx_resume_point_log
+where concat(y,'-',m,'-',d)>='${startDate2}' and concat(y,'-',m,'-',d)<='${endDate}'
+ and u_time>='${startDate2} 23' and u_time<='${endDate} 04' group by 1,2;
+
+add file work/other/shanxi/mongodb/mongo_album_duration.py;
+-- 矢量查询(Vectorized query)如果设置为true, 每次处理数据时会将1024行数据组成一个batch进行处理，而不是一行一行进行处理，这样能够显著提高执行速度。
+-- 这里由于脚本执行python内存不足；降维处理
+set hive.vectorized.execution.enabled=false;
+set hive.vectorized.execution.reduce.enabled=false;
+insert overwrite table sx_mongo_album_play_log partition(y,m,d)
+SELECT mac,sn,column_id,album_id,content_type,video_id,consume_time,stay_duration,create_time,substr(create_time, 1, 4) y,substr(create_time, 6, 2) m,substr(create_time, 9, 2) AS d
+FROM (SELECT mac,sn,column_id,album_id,content_type,video_id,consume_time,stay_duration,from_unixtime(bigint(stamp)) AS create_time FROM (SELECT transform (mac,sn,tdata) USING 'python mongo_album_duration.py' AS (mac,sn,stamp,column_id,album_id,video_id,content_type,consume_time,stay_duration) FROM album_play_log_tmp) b) a1
+WHERE create_time >= '${startDate}' AND create_time <'${endDate}';

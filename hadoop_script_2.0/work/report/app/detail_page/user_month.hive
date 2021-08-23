@@ -1,0 +1,9 @@
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.groupby.orderby.position.alias=true; -- 启用别名对于groupby和orderby
+--按周统计，详情页访问用户数
+insert overwrite table app_detail_page_count_month
+select y,m,parent_column_id,user_type,count(distinct user_id) as user_count,count(1) as visit_count
+from events_type_log
+ where events_type ='PAGE_ALBUM_DETAILS' and concat(y,'-',m,'-',d)<'${endDate}' and concat(y,'-',m,'-',d)>='${startDate}'
+ group by 1,2,parent_column_id,user_type;

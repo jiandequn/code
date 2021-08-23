@@ -1,0 +1,14 @@
+--交集+新增的+已经删除的
+insert overwrite table short_video
+select t.short_video_id,t.creator_id,t.name,t.labels,t.cp_id,t.content_type from short_video a
+inner join short_video_tmp t on t.short_video_id=a.short_video_id
+union all
+select  t.short_video_id,t.creator_id,t.name,t.labels,t.cp_id,t.content_type from short_video_tmp t
+left join short_video a on a.short_video_id=t.short_video_id
+where a.short_video_id is null
+union all
+select a.short_video_id,a.creator_id,a.name,a.labels,a.cp_id,a.content_type from short_video a
+left join short_video_tmp t on t.short_video_id=a.short_video_id
+where t.short_video_id is null
+
+

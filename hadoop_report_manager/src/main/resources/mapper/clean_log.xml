@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ppfuns.dao.CleanLogDao" >
+   <select id="getCleanUserIdList" resultType="java.lang.String">
+           select user_id from clean_user where is_effective=1;
+   </select>
+    <select id="getParentColumnIdList" resultType="com.ppfuns.entity.ParentColumnEntity">
+            select column_id as columnId,column_code as columnCode from persist_column WHERE is_effective=1;
+    </select>
+    <delete id="clearDataWeek">
+        DELETE from ${tableName} where week=#{week};
+    </delete>
+</mapper>

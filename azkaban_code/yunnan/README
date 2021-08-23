@@ -1,0 +1,21 @@
+对于测试环境和生产环境的配置文件优先级
+	1、代码目录conf目录下的配置会先加载
+	2、加载完本地代码目录下的配置后，会到hadoop集群加载配置是否存在；如果在hadoop配目录 /${hive_province}/conf存在配置，会加载配置覆上面本地加载的重复变量配置。hive_province是本地代码配置的
+	3、执行flow流程中脚本手动传参方式，优先级最高，自动替换到前面两种 bash ./day/load_log/load_datalog.sh startDate=2020-09-21 endDate=2020-09-22
+
+auto_gengerate_date.sh 设置自动更新hadoop上date.conf的时间(azkaban定时器执行，慎用)
+	startDate=2020-01-01
+	endDate=2020-01-02
+	isUpdateDate=0 #第一次执行；往后定时器递归执行时改1
+	执行 sh auto_generate_date.sh day|week|month|quarter 四个参数中任一个
+
+gen.py 手动方式更新，更加方便直接，提供了从某个节点向子节点向下执行的功能。
+   例如 python gen.py flowId=day jobs=app_inlet_position_count_job,app_album_rank_job startDate=2020-07-01 endDate=2020-08-01
+   flowId 为azkaban的flowId值，必须 即day.flow,week.flow,month.flow
+   jobs为 xx.flow文件中任务name，必须
+
+foreach_job.sh 手动循环更新day数据处理
+    sh foreach_job.sh flowId=day jobs=app_inlet_position_count_job,app_album_rank_job startDate=2020-07-01 endDate=2020-08-01
+    flowId 为azkaban的flowId值，必须 即day.flow,week.flow,month.flow
+    jobs为 xx.flow文件中任务name，必须
+

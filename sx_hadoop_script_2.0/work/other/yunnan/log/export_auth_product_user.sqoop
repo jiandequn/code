@@ -1,0 +1,20 @@
+sqoop export \
+--connect '%(db_url)s' \
+--username %(db_username)s \
+--password-file  %(db_pwdfile)s \
+--export-dir /%(hive_province)s/hive/auth/product_user \
+--table auth_product_user \
+--columns user_id,mac,sn,user_type,area_code,third_product_code,create_time \
+--update-key user_id,user_type,third_product_code \
+--update-mode allowinsert \
+--input-null-string '\\N'  \
+--input-null-non-string '\\N' \
+--input-fields-terminated-by '\t' \
+--outdir %(sqoop_outdir)s/mr_java
+
+
+
+
+
+
+

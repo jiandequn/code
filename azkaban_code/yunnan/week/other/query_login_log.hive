@@ -1,0 +1,14 @@
+set hive.auto.convert.join=true;
+insert overwrite table login_page_log
+select parent_column_id,user_type,mac,sn,user_id, split(param['nowSpm'],'\\.')[2] as column_id,
+split(param['afterSpm'],'\\.')[1] as after_column_code,tcm.column_name as after_column_name,
+split(param['afterSpm'],'\\.')[2] after_column_id,area_code,
+t.create_time from events_type_log t
+left join t_column_management tcm ON tcm.column_id=split(t.param['afterSpm'],'\\.')[2]
+where events_type='COLUMN_TYPE_PRODUCT' and t.create_time>='${startDate}' and t.create_time<'${endDate}';
+
+
+
+
+
+

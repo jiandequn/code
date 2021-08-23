@@ -1,0 +1,13 @@
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.groupby.orderby.position.alias=true; -- 启用别名对于groupby和orderby
+set hive.vectorized.execution.enabled=false; --控制是否启用查询执行的向量模式
+--统计周期内，每个标签的累计订阅数
+insert overwrite table app_subscribe_label_count
+select '${endDate}' as t_date,a.parent_column_id,content_id as label_id,alm.label_name,a.subscribe_count from(
+select parent_column_id,param["contentId"] as content_id,sum(if(param["operateType"]='add',1,-1)) as subscribe_count from events_type_log
+where events_type='COLUMN_TYPE_USER_LABEL' and param["operateType"] in('add','del')
+   and concat(y,'-',m,'-',d)<'${endDate}'
+   group by parent_column_id,param["contentId"]) a
+left join album_label_manager alm on alm.label_id=a.content_id
+

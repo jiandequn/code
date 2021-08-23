@@ -1,0 +1,10 @@
+sqoop export \
+--connect '%(db_url)s' \
+--username %(db_username)s \
+--password-file  %(db_pwdfile)s \
+--export-dir /%(hive_province)s/hive/reports/noapp/update_area_to_user/ \
+--call 'update_area_to_user' \
+--input-fields-terminated-by "\t" \
+--input-null-string '\\N'  \
+--input-null-non-string '\\N' \
+--outdir %(sqoop_outdir)s/mr_java

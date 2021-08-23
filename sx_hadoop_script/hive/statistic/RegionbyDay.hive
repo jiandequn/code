@@ -1,0 +1,35 @@
+
+-- 按天统计专区信息
+-- 进入数据库
+use yn_hadoop;
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.vectorized.execution.enabled=false; --控制是否启用查询执行的向量模式
+-- 1、按天去重 日访问用户信息
+insert overwrite table visit_user_page_day partition(y,m,d)  select param["parentColumnId"] as parent_column_id,user_type,user_id ,'' area_code,min(create_time) as create_time,y,m,d from events_type_log
+where events_type in ('operationDetails','operationPage') and concat(y,'-',m,'-',d)>='${startDate}' and concat(y,'-',m,'-',d)<='${endDate}' group by param["parentColumnId"],user_type,user_id,y,m,d cluster by user_id,user_type;
+
+
+
+
+--3、 按天去除重复播放用户
+insert overwrite table play_user_day partition(y,m,d)  select param['parentColumnId'] as parent_column_id,user_type,user_id ,'' area_code,sum(1) as play_count,sum(cast(nvl(param['timePosition'],'0') as bigint)) as duration,y,m,d from events_type_log
+where events_type='operateResumePoint' and param['operateType']='add' and concat(y,'-',m,'-',d)>='${startDate}' and concat(y,'-',m,'-',d)<='${endDate}' group by param['parentColumnId'],user_type,user_id,y,m,d cluster by user_id,user_type;
+
+
+
+-- 创建临时存放统计数据的表；
+-- 统计日页面访问用户数，统计日播放用户数，统计日播放次数
+-- 统计页面访问用户数
+truncate table app_visit_count_day;
+insert  overwrite table app_visit_count_day
+select a.t as t_date,a.parent_column_id,a.user_type,sum(a.page_user_count) as page_user_count,sum(play_user_count) as play_user_count,sum(a.play_count) as play_count,sum(a.duration) as duration from (
+select concat(y,'-',m,'-',d) as t,parent_column_id,user_type, count(1) as page_user_count,0 as play_user_count,0 as duration,0 as play_count from visit_user_page_day where concat(y,'-',m,'-',d)>='${startDate}' and concat(y,'-',m,'-',d)<='${endDate}' group by y,m,d,parent_column_id,user_type
+UNION ALL
+select concat(y,'-',m,'-',d) as t,parent_column_id,user_type,0 as page_user_count,count(1) as play_user_count, sum(duration) as duration,sum(play_count) as play_count from play_user_day where concat(y,'-',m,'-',d)>='${startDate}' and concat(y,'-',m,'-',d)<='${endDate}' group by y,m,d,parent_column_id,user_type
+) a group by a.t,a.parent_column_id,a.user_type;
+
+-- 统计 播放次数
+-- select sum(cast(nvl(data['timePosition'],'0') as bigint)) as duration,count(1) as play_count from events_type_log where y=2020 and m='04' and d='01' and data['operateType']='add';
+
+

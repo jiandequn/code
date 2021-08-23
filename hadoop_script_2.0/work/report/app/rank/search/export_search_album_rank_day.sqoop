@@ -1,0 +1,20 @@
+sqoop eval \
+--connect '%(db_url)s' \
+--username %(db_username)s \
+--password-file  %(db_pwdfile)s \
+--metadata-transaction-isolation-level 'TRANSACTION_REPEATABLE_READ' \
+--query "delete from app_search_album_rank_day where t_date>='%(startDate)s' and t_date<'%(endDate)s'"
+
+sqoop export \
+--connect '%(db_url)s' \
+--username %(db_username)s \
+--password-file  %(db_pwdfile)s \
+--export-dir /%(hive_province)s/hive/reports/app/rank/search_album/day \
+--table app_search_album_rank_day \
+--columns t_date,parent_column_id,album_id,album_name,content_type,content_type_name,count \
+--update-key t_date,parent_column_id,album_id \
+--update-mode allowinsert \
+--input-null-string '\\N'  \
+--input-null-non-string '\\N' \
+--input-fields-terminated-by '\t' \
+--outdir %(sqoop_outdir)s/mr_java

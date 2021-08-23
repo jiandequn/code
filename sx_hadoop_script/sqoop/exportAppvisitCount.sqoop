@@ -1,0 +1,10 @@
+sqoop export \
+--connect jdbc:mysql://192.168.15.50:3306/sx_hadoop?useUnicode=true \
+--username kfyw \
+--password 123456 \
+--export-dir /data/hive/reports/app/visit_count/day \
+--table app_visit_count_day \
+--columns t_date,parent_column_id,user_type,page_user_count,play_user_count,play_count,duration \
+--update-key t_date,parent_column_id,user_type \
+--update-mode allowinsert \
+-input-fields-terminated-by "\t"

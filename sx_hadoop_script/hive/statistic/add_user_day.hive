@@ -1,0 +1,12 @@
+-- 2、天新增用户数据
+use yn_hadoop;
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.vectorized.execution.enabled=false; --控制是否启用查询执行的向量模式
+insert overwrite table add_page_user_day partition(y,m,d)
+select vud.parent_column_id,vud.user_type,vud.user_id,vud.area_code,vud.create_time,substr(vud.create_time,1,4) y,substr(vud.create_time,6,2) m,substr(vud.create_time,9,2) d   from(
+  select parent_column_id,user_type,user_id,area_code,min(create_time) as create_time from visit_user_page_day
+  where concat(y,'-',m,'-',d)>='${startDate}' and concat(y,'-',m,'-',d)<='${endDate}' group by parent_column_id,user_type,user_id,area_code
+) vud
+ left join user_info aud on aud.user_id=vud.user_id and aud.user_type=vud.user_type and  aud.parent_column_id=vud.parent_column_id
+ where aud.user_id is null;

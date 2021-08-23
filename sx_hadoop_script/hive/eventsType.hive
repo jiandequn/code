@@ -1,0 +1,18 @@
+use yn_hadoop;
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set mapreduce.map.memory.mb = 4096;
+set mapreduce.reduce.memory.mb = 4096;
+set mapreduce.map.java.opts=-Xmx3278m;
+set mapreduce.reduce.java.opts=-Xmx3278m;
+set hive.exec.parallel=true;
+set hive.exec.parallel.thread.number=16;   # 并行度
+set mapreduce.job.reduce.slowstart.completedmaps=0.01;
+set hive.merge.mapfiles = true;    --#在Map-only的任务结束时合并小文件
+set hive.merge.mapredfiles = true; --#在Map-Reduce的任务结束时合并小文件
+set hive.merge.size.per.task = 256000000; -- #合并文件的大小
+set hive.merge.smallfiles.avgsize=16000000;
+
+insert overwrite table events_type_log partition(events_type,y,m,d) select mac,sn,yl.user_id,user_type,create_time,str_to_map(data,';','=') as param,events_type,substr(create_time,1,4) y,substr(create_time,6,2) m,substr(create_time,9,2) d  from yn_logs yl
+left join clean_user c on c.user_id = yl.user_id
+where concat(y,'-',m,'-',d)>='${startDate}' and concat(y,'-',m,'-',d)<='${endDate}' and create_time>'${startDate}' and create_time<='${endDate}' and c.user_id is null

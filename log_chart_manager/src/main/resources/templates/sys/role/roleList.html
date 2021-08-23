@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <base th:href="${#request.getContextPath()}+'/'">
+</head>
+<body>
+<header th:fragment="roleList">
+    <table id="roleTable" lay-filter="roleTableFilter"></table>
+    <script type="text/html" id="optBar">
+        <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="add">编辑</a>
+        <a shiro:hasPermission="sys_user:del" class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+    </script>
+        <!--<table class="layui-table">-->
+            <!--<thead>-->
+            <!--<tr>-->
+                <!--<th>角色编号</th>-->
+                <!--<th>角色名称</th>-->
+                <!--<th>角色描述</th>-->
+                <!--<th>添加时间</th>-->
+                <!--<th width="88px;">操作</th>-->
+            <!--</tr>-->
+            <!--</thead>-->
+            <!--<tbody id="tbody">-->
+            <!--</tbody>-->
+        <!--</table>-->
+
+<script th:src="@{/js/sys/roleList.js}"></script>
+
+</header>
+</body>
+</html>

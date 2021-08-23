@@ -1,0 +1,20 @@
+sqoop eval \
+--connect '%(db_url)s' \
+--username %(db_username)s \
+--password-file  %(db_pwdfile)s \
+--metadata-transaction-isolation-level 'TRANSACTION_REPEATABLE_READ' \
+--query "delete from app_video_play_count_rank_week where (y>=YEAR(subdate('%(startDate)s',WEEKDAY('%(startDate)s')-3)) AND w >= WEEKOFYEAR('%(startDate)s')) AND (y<=YEAR(subdate('%(endDate)s',WEEKDAY('%(endDate)s') - 3)) AND w < WEEKOFYEAR('%(endDate)s'))"
+
+sqoop export \
+--connect '%(db_url)s' \
+--username %(db_username)s \
+--password-file  %(db_pwdfile)s \
+--export-dir /%(hive_province)s/hive/reports/app/rank/play_video/play_count/week \
+--table app_video_play_count_rank_week \
+--columns y,w,parent_column_id,album_id,album_name,content_type,content_type_name,video_id,video_name,play_count \
+--update-key y,w,parent_column_id,album_id,video_id \
+--update-mode allowinsert \
+--input-null-string '\\N'  \
+--input-null-non-string '\\N' \
+--input-fields-terminated-by '\t' \
+--outdir %(sqoop_outdir)s/mr_java

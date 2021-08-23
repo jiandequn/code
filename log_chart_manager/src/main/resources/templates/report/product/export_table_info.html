@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head th:include="layout :: htmlhead" th:with="title='导出表管理'"></head>
+<style>
+    .progressBar {
+        display: block;
+        width: 200px;
+        height: 28px;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        margin-left: -74px;
+        margin-top: -14px;
+        padding: 10px 10px 10px 50px;
+        text-align: left;
+        line-height: 27px;
+        font-weight: normal;
+        position: absolute;
+        z-index: 2001;
+        font-size:130%;
+        background:url([[@{/}]]/layui/css/modules/layer/default/loading-1.gif) no-repeat 10px 10px;
+    }
+</style>
+<form id="searchForm" class="layui-form layui-form-pane" method="post" action="" style="margin-top: 20px;">
+    <div class="layui-form-item">
+        <label class="layui-form-label">名称</label>
+        <div class="layui-input-inline">
+            <input id="nameS" name="name" autocomplete="off" class="layui-input" type="text"/>
+        </div>
+        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        <button class="layui-btn" lay-submit="" lay-filter="searchSubmit">查询</button>
+    </div>
+</form>
+<script type="text/html" id="tableListToolbar">
+    <div class="layui-btn-container">
+        <button shiro:hasPermission="export_table_info:add" class="layui-btn layui-btn-normal" onclick="add()">添加</button>
+        <button shiro:lacksPermission="export_table_info:add" class="layui-btn layui-btn-normal  layui-btn-disabled">添加</button>
+        <!--<button shiro:hasPermission="export_table_info:export" class="layui-btn layui-btn-normal" onclick="batchDownlad()">批量下载</button>-->
+        <!--<button shiro:lacksPermission="export_table_info:export" class="layui-btn layui-btn-normal  layui-btn-disabled">批量下载</button>-->
+        <button shiro:hasPermission="export_table_info:export" class="layui-btn layui-btn-normal" onclick="batchDownlad(1)">批量下载ZIP</button>
+        <button shiro:lacksPermission="export_table_info:export" class="layui-btn layui-btn-normal  layui-btn-disabled">批量下载ZIP</button>
+    </div>
+</script>
+<table id="tableList" lay-filter="tableFilter"></table>
+<script type="text/html" id="effectiveTpl">
+    {{#  if(d.isEffective){ }}
+    <input shiro:hasPermission="export_table_info:setIsEffective" type="checkbox" name="{{d.name}}" value="{{d.id}}" lay-skin="switch" lay-text="启动|禁用"
+           lay-filter="isEffectiveTpl" checked="checked"/>
+    <input shiro:lacksPermission="export_table_info:setIsEffective" type="checkbox" name="{{d.name}}" value="{{d.id}}" lay-skin="switch" lay-text="启动|禁用"
+           lay-filter="isEffectiveTpl" checked="checked"/>
+    {{#  } else { }}
+    <input shiro:hasPermission="export_table_info:setIsEffective"  type="checkbox" name="{{d.name}}" value="{{d.id}}" lay-skin="switch" lay-text="启动|禁用"
+                                         lay-filter="isEffectiveTpl"/>
+    <input shiro:lacksPermission="export_table_info:setIsEffective"  type="checkbox" name="{{d.name}}" value="{{d.id}}" lay-skin="switch" lay-text="启动|禁用"
+           lay-filter="isEffectiveTpl"/>
+    {{#  } }}
+</script>
+<div id="progressBar" class="progressBar" style="display:none;">&nbsp;数据下载中<b></b></div>
+<script type="text/html" id="optBar">
+    <a shiro:hasPermission="export_table_info:update" class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+    {{#  if(d.isEffective==0){ }}
+    <a shiro:hasPermission="export_table_info:del" class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+    {{#  } else { }}
+    <a shiro:hasPermission="export_table_info:download" class="layui-btn layui-btn-danger layui-btn-xs" lay-event="download">下载</a>
+    {{#  } }}
+</script>
+<!--添加或编辑用户-->
+<div id="setExportTableInfo" class="layer_self_wrap" style="width:700px;display:none;">
+    <form id="addForm" class="layui-form layui-form-pane" method="post" action="" style="margin-top: 20px;" lay-filter="addFormFilter">
+        <input id="pageNum" type="hidden" name="pageNum"/>
+        <input id="id" type="hidden" name="id"/>
+        <div class="layui-form-item">
+            <label class="layui-form-label">导出表</label>
+            <div class="layui-input-inline">
+                <select id="tableId" name="tableId"  lay-verify="required"></select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">导出文件名称</label>
+            <div class="layui-input-inline">
+                <input id="name" name="name" lay-verify="required" autocomplete="off" class="layui-input"
+                       type="text"/>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">文件格式</label>
+            <div class="layui-input-inline">
+                <select id="fileFormat" name="fileFormat" lay-verify="required">
+                    <option value="csv" selected>CSV</option>
+                    <option value="xlsx">EXCEL</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">状态</label>
+            <div class="layui-input-inline">
+                <select id="isEffective" name="isEffective"  lay-verify="required">
+                    <option value="1" selected>启用</option>
+                    <option value="0">禁用</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">查询SQL</label>
+            <div class="layui-input-block">
+                <textarea id="querySql" name="querySql" placeholder="请输入内容" class="layui-textarea"></textarea>
+            </div>
+        </div>
+        <table id="fieldTableList" lay-filter="fieldTableFilter"></table>
+    </form>
+</div>
+<script type="text/html" id="fieldTableToolbar">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm" lay-event="add">添加</button>
+        <button class="layui-btn layui-btn-sm layui-icon layui-icon-search" lay-event="update">可选字段</button>
+    </div>
+</script>
+<script type="text/html" id="opt2Bar">
+    <a shiro:hasPermission="export_table_info:del2" class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+
+<div id="selectTableFieldPanel" class="layer_self_wrap" style="width:500px;display:none;">
+    <table id="selectTableField" lay-filter="selectTableFieldFilter"></table>
+
+</div>
+<script th:src="@{/js/report/export_table_info.js}"></script>
+<script type="text/javascript" th:src="@{/js/sys/common.js}"></script>
+<script type="text/javascript" th:src="@{/js/report/common.js}"></script>
+</html>

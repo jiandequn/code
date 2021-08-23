@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head th:include="layout :: htmlhead" th:with="title='区域新增用户占比'"></head>
+<form id="searchForm" class="layui-form layui-form-pane" method="post" action="" style="margin-top: 20px;">
+    <div class="layui-form-item">
+        <label class="layui-form-label">专区</label>
+        <div class="layui-input-inline">
+            <select id="parentColumnId" name="parentColumnId" lay-verify="required">
+            </select>
+        </div>
+        <label class="layui-form-label">留存用户类型</label>
+        <div class="layui-input-inline">
+            <select id="retentionType" name="retentionType" multiple="multiple">
+                <option value="0">--全部--</option>
+                <option value="1">2日留存</option>
+                <option value="2">3日留存</option>
+                <option value="3">2日新增用户留存</option>
+            </select>
+        </div>
+        <label class="layui-form-label">时间</label>
+        <div class="layui-input-inline" style="width: 175px;">
+            <input name="startDate" id="insertTimeStart" placeholder="yyyy-MM-dd" autocomplete="off"
+                   class="layui-input" type="text"/>
+        </div>
+        <div class="layui-form-mid">-</div>
+        <div class="layui-input-inline" style="width: 175px;">
+            <input name="endDate" id="insertTimeEnd" placeholder="yyyy-MM-dd" autocomplete="off"
+                   class="layui-input" type="text"/>
+        </div>
+        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        <button class="layui-btn" lay-submit="" lay-filter="searchSubmit">查询</button>
+
+    </div>
+</form>
+<hr class="layui-bg-black"/>
+<div id="container" style="min-width:400px;min-height:600px"></div>
+<script type="text/javascript" th:src="@{/js/report/common.js}"></script>
+<script th:src="@{/js/dateUtils.js}"></script>
+<script type="text/javascript" th:src="@{/highcharts/highcharts.js}"></script>
+<script th:src="@{/highcharts/modules/exporting.js}"></script>
+<script th:src="@{/highcharts/highcharts-zh_CN.js}"></script>
+<script>
+    var productColumnArr = initProductColumnSelect("parentColumnId");
+    layui.use(['form','laydate'], function(){
+        var form = layui.form;
+        var laydate = layui.laydate;
+        laydate.render({
+            elem: '#insertTimeStart'
+        });
+        laydate.render({
+            elem: '#insertTimeEnd'
+        });
+        form.render("select");
+        form.on('submit(searchSubmit)', function(data){
+            chartFunc()
+            return false;
+        });
+
+    });
+    function chartFunc() {
+        var parentColumnId = $('#parentColumnId').find("option:selected").val();
+        var parentColumnName = $('#parentColumnId').find("option:selected").text();
+        $.ajax({
+            type: "GET",
+            data: $("#searchForm").serialize(),
+            url: "chart/list",
+            success: function (result) {
+                var retentionType = $('#retentionType').find("option:selected").val();
+                var retentionTypeName = $('#retentionType').find("option:selected").text();
+                var titleText = parentColumnName;
+                if(retentionType==0 || retentionType==null|| retentionType== undefined){
+                    retentionTypeName="留存"
+                }
+                if (parentColumnId == '') {
+                    titleText = "留存用户数据";
+                } else {
+                    titleText = "<div style='text-shadow: 10px 10px 50px #000;'>" + parentColumnName + "</div>" +retentionTypeName+ "用户数据";
+                }
+                var chart = Highcharts.chart('container', {
+                    chart: {
+                        type: 'column'
+                    },
+                    title: {
+                        text: titleText
+                    },
+                    subtitle: {
+                        text: '数据来源: 聚视互娱日志采集'
+                    },
+                    xAxis: {
+                        categories: result.categories,
+                        crosshair: true
+                    },
+                    yAxis: {
+                        min: 0,
+                        title: {
+                            text: retentionTypeName+'用户数'
+                        }
+                    },
+                    tooltip: {
+                        // head + 每个 point + footer 拼接成完整的 table
+                        headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+                        pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+                        '<td style="padding:0"><b>{point.y:.1f} 户</b></td></tr>',
+                        footerFormat: '</table>',
+                        shared: true,
+                        useHTML: true
+                    },
+                    plotOptions: {
+                        column: {
+                            borderWidth: 0
+                        }
+                    },
+                    series: result.series
+                });
+            }
+        });
+    }
+    chartFunc();
+</script>
+</html>

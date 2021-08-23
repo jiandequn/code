@@ -1,0 +1,13 @@
+sqoop export \
+--connect '%(db_url)s' \
+--username %(db_username)s \
+--password-file  %(db_pwdfile)s \
+--export-dir /%(hive_province)s/hive/report/online_order/count/month \
+--table online_order_count_month \
+--columns y,m,user_type,third_product_code,user_count,order_count \
+--update-key y,m,user_type,third_product_code \
+--update-mode allowinsert \
+--input-null-string '\\N'  \
+--input-null-non-string '\\N' \
+--input-fields-terminated-by '\t' \
+--outdir %(sqoop_outdir)s/mr_java

@@ -1,0 +1,35 @@
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.groupby.orderby.position.alias=true; -- 启用别名对于groupby和orderby
+set hive.vectorized.execution.enabled=false;
+-- 用户来源入口'13187.PAGE_SXGDJSJ.0.0.0' 统计了用户来源数，和用户点击次数
+-- 各个入口登录的值
+create TEMPORARY table app_inlet_position_count_day_tmp as
+select concat(y,'-',m,'-',d) as t_date,user_type,events_type,parent_column_id,param['afterSpm'] as spm,if(array_contains(map_keys(param),'contentId'),param['contentId'],'') as content_id,count(distinct if(user_type='OTT',mac,user_id)) user_count,count(1) as visit_count from events_type_log
+where events_type in('COLUMN_TYPE_PRODUCT','COLUMN_TYPE_SEARCH','PAGE_SPECIAL_DETAILS','PAGE_ALBUM_DETAILS')
+and concat(y,'-',m,'-',d)>='${startDate}' and  concat(y,'-',m,'-',d)<'${endDate}'
+and (param['afterSpm'] RLIKE '^[0-9A-Za-z0-9_]{1,}\\.[A-Za-z0-9_]{1,}\\.0\\.0\\.0' 
+or param['afterSpm'] RLIKE '^[0-9A-Za-z0-9_]{1,}\\.[A-Za-z0-9_]{1,}\\.[0-9]{1,}$')
+and  param['nowSpm'] RLIKE '^[0-9]{1,}\\.[A-Za-z0-9_]{1,}\\.[0-9]{1,}\\.[0-9]{1,}\\.[0-9]{13}$'
+    group by 1,2,3,4,5,6;
+
+insert overwrite table app_inlet_position_count_day
+select a.t_date,a.user_type,a.events_type,a.parent_column_id,a.spm,ts.subject_name as content_name,a.user_count,a.visit_count from app_inlet_position_count_day_tmp a
+left join t_subject ts on ts.subject_id=a.content_id
+where events_type='PAGE_SPECIAL_DETAILS'
+union all
+select a.t_date,a.user_type,a.events_type,a.parent_column_id,a.spm,ts.album_name as content_name,a.user_count,a.visit_count from app_inlet_position_count_day_tmp a
+left join album ts on ts.album_id=a.content_id
+where events_type='PAGE_ALBUM_DETAILS'
+union all
+select a.t_date,a.user_type,a.events_type,a.parent_column_id,a.spm,'' as content_name,a.user_count,a.visit_count from app_inlet_position_count_day_tmp a
+where events_type not in('PAGE_SPECIAL_DETAILS','PAGE_ALBUM_DETAILS');
+
+--按日统计用户来源
+insert overwrite table app_inlet_count_day
+select concat(y,'-',m,'-',d) as t_date,user_type,parent_column_id,count(distinct if(user_type='OTT',mac,user_id)) user_count,count(1) as visit_count from events_type_log
+where events_type in('COLUMN_TYPE_PRODUCT','COLUMN_TYPE_SEARCH','PAGE_SPECIAL_DETAILS','PAGE_ALBUM_DETAILS')
+and concat(y,'-',m,'-',d)>='${startDate}' and  concat(y,'-',m,'-',d)<'${endDate}'
+and (param['afterSpm'] RLIKE '^[0-9A-Za-z0-9_]{1,}\\.[A-Za-z0-9_]{1,}\\.0\\.0\\.0' or param['afterSpm'] RLIKE '^[0-9A-Za-z0-9_]{1,}\\.[A-Za-z0-9_]{1,}\\.[0-9]{1,}$')
+and  param['nowSpm'] RLIKE '^[0-9]{1,}\\.[A-Za-z0-9_]{1,}\\.[0-9]{1,}\\.[0-9]{1,}\\.[0-9]{13}$'
+    group by 1,2,3;

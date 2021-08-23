@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head th:include="layout :: htmlhead" th:with="title='区域新增用户占比-饼图'"></head>
+<form id="searchForm" class="layui-form layui-form-pane" method="post" action="" style="margin-top: 20px;">
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">用户类型</label>
+            <div class="layui-input-inline">
+                <select id="userType" name="userType" lay-verify="required">
+                    <option label="OTT" th:selected="${ppfuns.userType=='OTT'}" >OTT</option>
+                    <option label="VOD" th:selected="${ppfuns.userType=='VOD'}">VOD</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">专区</label>
+            <div class="layui-input-inline">
+                <select id="parentColumnId" name="parentColumnId" ></select>
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">时间</label>
+            <div class="layui-input-inline" style="width: 100px;">
+                <input name="startDate" id="insertTimeStart" placeholder="yyyy-MM-dd" autocomplete="off"
+                       class="layui-input" type="text"/>
+            </div>
+            <div class="layui-form-mid">-</div>
+            <div class="layui-input-inline" style="width: 100px;">
+                <input name="endDate" id="insertTimeEnd" placeholder="yyyy-MM-dd" autocomplete="off"
+                       class="layui-input" type="text"/>
+            </div>
+        </div>
+        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        <button class="layui-btn" lay-submit="" lay-filter="searchSubmit">查询</button>
+    </div>
+</form>
+<!--<hr class="layui-bg-black"/>-->
+<div id="container" style="min-width:400px;min-height:600px"></div>
+<div style="display:none;" id="currentUser">
+    <shiro:principal property="id"></shiro:principal>
+</div>
+<script type="text/javascript" th:src="@{/js/report/common.js}"></script>
+<script type="text/javascript" th:src="@{/highcharts/highcharts.js}"></script>
+<script th:src="@{/js/dateUtils.js}"></script>
+<script th:src="@{/highcharts/modules/exporting.js}"></script>
+<script th:src="@{/highcharts/highcharts-zh_CN.js}"></script>
+<script>
+    var productColumnArr = initProductColumnSelect("parentColumnId",true);
+    layui.use(['form','laydate','layer'], function(){
+        var form = layui.form;
+        var laydate = layui.laydate;
+        layer=layui.layer;
+        laydate.render({
+            elem: '#insertTimeStart'
+        });
+        laydate.render({
+            elem: '#insertTimeEnd'
+        });
+        form.render("select");
+        form.on('submit(searchSubmit)', function (data) {
+            chartFunc()
+            return false;
+        });
+
+    });
+    function chartFunc() {
+        var parentColumnId = $('#parentColumnId').find("option:selected").val();
+        var parentColumnName = $('#parentColumnId').find("option:selected").text();
+        var loadIndex = layer.load(0, {time: 30*1000}); //又换了种风格，并且设定最长等待10秒
+        $.ajax({
+            type: "GET",
+            data: $("#searchForm").serialize(),
+            url: "area/chart_ratio/increase_list",
+            success: function (result) {
+                layer.close(loadIndex);
+                var titleText = parentColumnName;
+                if (parentColumnId == '') {
+                    titleText = "区域用户份额占比(不分专区)";
+                } else {
+                    titleText = "<div style='text-shadow: 10px 10px 50px #000;color: blue'>" + parentColumnName + "</div>" + "区域用户份额占比";
+                }
+                Highcharts.chart('container', {
+                    chart: {
+                        plotBackgroundColor: null,
+                        plotBorderWidth: null,
+                        plotShadow: false,
+                        type: 'pie'
+                    },
+                    title: {
+                        text: titleText
+                    },
+                    tooltip: {
+                        pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+                    },
+                    plotOptions: {
+                        pie: {
+                            allowPointSelect: true,
+                            cursor: 'pointer',
+                            dataLabels: {
+                                enabled: true,
+                                format: '<b>{point.name}</b>: {point.percentage:.1f} %',
+                                style: {
+                                    color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
+                                }
+                            }
+                        }
+                    },
+                    series: [{
+                        name: '区域',
+                        colorByPoint: true,
+                        data: result
+                    }]
+                });
+            }
+        });
+    }
+    chartFunc();
+</script>
+</html>

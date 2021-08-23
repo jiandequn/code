@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head th:include="layout :: htmlhead" th:with="title='表维护'"></head>
+<form id="tableInfoSearch" class="layui-form layui-form-pane" method="post" action="" style="margin-top: 20px;">
+    <div class="layui-form-item">
+        <label class="layui-form-label">表名称</label>
+        <div class="layui-input-inline">
+            <input id="tableNameS" name="tableName" autocomplete="off" class="layui-input" type="text"/>
+        </div>
+        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        <button class="layui-btn" lay-submit="" lay-filter="searchSubmit">查询</button>
+    </div>
+</form>
+
+<!--<hr class="layui-bg-blue"/>-->
+<hr class="layui-bg-black"/>
+    <button shiro:hasPermission="clean_user:add" class="layui-btn layui-btn-normal" onclick="add()">添加</button>
+    <button shiro:lacksPermission="clean_user:add" class="layui-btn layui-btn-normal  layui-btn-disabled">添加</button>
+
+<table id="tableInfoList" lay-filter="tableInfoTable"></table>
+<script type="text/html" id="effectiveTpl">
+    {{#  if(d.isEffective){ }}
+    <input shiro:hasPermission="clean_user:setIsEffective" type="checkbox" name="{{d.tableName}}" value="{{d.id}}" lay-skin="switch" lay-text="启动|禁用"
+           lay-filter="isEffectiveTpl" checked="checked"/>
+    <input shiro:lacksPermission="clean_user:setIsEffective" type="checkbox" name="{{d.tableName}}" value="{{d.id}}" lay-skin="switch" lay-text="启动|禁用"
+           lay-filter="isEffectiveTpl" checked="checked"/>
+    {{#  } else { }}
+    <input shiro:hasPermission="clean_user:setIsEffective"  type="checkbox" name="{{d.tableName}}" value="{{d.id}}" lay-skin="switch" lay-text="启动|禁用"
+                                         lay-filter="isEffectiveTpl"/>
+    <input shiro:lacksPermission="clean_user:setIsEffective"  type="checkbox" name="{{d.tableName}}" value="{{d.id}}" lay-skin="switch" lay-text="启动|禁用"
+           lay-filter="isEffectiveTpl"/>
+    {{#  } }}
+</script>
+
+<script type="text/html" id="optBar">
+    <a shiro:hasPermission="table_info:update" class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+    <a shiro:hasPermission="table_info:del" class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+<!--添加或编辑用户-->
+<div id="setTableInfo" class="layer_self_wrap" style="width:500px;display:none;">
+    <form id="tableInfoForm" class="layui-form layui-form-pane" method="post" action="" style="margin-top: 20px;" lay-filter="tableInfoFormFilter">
+        <input id="pageNum" type="hidden" name="pageNum"/>
+        <input id="id" type="hidden" name="id"/>
+        <div class="layui-form-item">
+            <label class="layui-form-label">表名称</label>
+            <div class="layui-input-inline">
+                <input id="tableName" name="tableName" lay-verify="required" autocomplete="off" class="layui-input"
+                       type="text" readonly="readonly"/>
+            </div>
+            <button type="button" class="layui-btn" onclick="selectTable()">选择表</button>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">表中文名称</label>
+            <div class="layui-input-inline">
+                <input id="tableComment" name="tableComment" lay-verify="required" autocomplete="off" class="layui-input"
+                       type="text"/>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">类型</label>
+            <div class="layui-input-inline">
+                <select id="isEffective" name="isEffective">
+                    <option value="1">启动</option>
+                    <option value="0">禁用</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block" style="margin-left: 10px;">
+                <button class="layui-btn" lay-submit="" lay-filter="tableInfoSubmit">提交</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div id="selectTablePanel" class="layer_self_wrap" style="width:500px;display:none;">
+    <table id="selectTable2" lay-filter="selectTable2Filter"></table>
+</div>
+<script th:src="@{/js/report/table_info.js}"></script>
+<script type="text/javascript" th:src="@{/js/sys/common.js}"></script>
+</html>

@@ -1,0 +1,28 @@
+CREATE EXTERNAL TABLE ry_logs
+(
+    eventsType STRING,
+    mac STRING,
+    sn STRING,
+    userId STRING,
+    userType STRING,
+    parentColumnId STRING,
+    columnId STRING,
+    contentId STRING,
+    contentType STRING,
+    operateType STRING,
+    timePosition STRING,
+    createTime STRING,
+    nowSpm STRING,
+    afterSpm STRING,
+    pos STRING,
+    posName STRING,
+    keyWord STRING,
+    code STRING,
+    message STRING,
+    productId STRING,
+    isEffective STRING,
+    resourceId STRING,
+    videoId STRING
+    )
+ROW FORMAT SERDE 'com.ppfuns.PpfunsSerDe'
+location '/data/logs/2019/08/26/10';

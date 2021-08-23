@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ppfuns.dao.TableInfoDao" >
+    <select id="getTableDesc" resultType="java.lang.String">
+         select TABLE_COMMENT from information_schema.`TABLES` where TABLE_NAME=#{tableName}
+    </select>
+
+    <select id="selectAllTables" resultType="com.ppfuns.entity.base.TableInfo">
+       select TABLE_NAME as tableName,TABLE_COMMENT as tableComment,CREATE_TIME as createTime from information_schema.`TABLES` where TABLE_SCHEMA=#{hadoopMrDb} ORDER BY CREATE_TIME DESC
+    </select>
+
+    <select id="getTableFieldDesc" resultType="com.ppfuns.entity.table.TableColumnInfoEntity">
+            SELECT
+        COLUMN_NAME AS columnName,
+        COLUMN_COMMENT AS columnComment
+    FROM
+        information_schema. COLUMNS
+    WHERE
+        TABLE_SCHEMA = #{hadoopMrDb}
+    AND TABLE_NAME = #{tableName}
+    </select>
+    <select id="getDataFromTable" resultType="java.util.HashMap">
+        SELECT  * FROM ${tableName}
+    </select>
+    <sql id="tableInfoColumns">
+        id,table_name as tableName,table_comment tableComment,is_effective as isEffective,
+       update_sql updateSql,create_time as createTime
+    </sql>
+    <select id="get" resultType="com.ppfuns.entity.base.TableInfo">
+        SELECT <include refid="tableInfoColumns"/>  FROM table_info where table_name=#{tableName}
+    </select>
+    <update id="execUpdate">
+        ${updateSql}
+    </update>
+    <select id="selectById" resultType="com.ppfuns.entity.base.TableInfo">
+        SELECT <include refid="tableInfoColumns"/>  FROM table_info where id=#{tableId}
+    </select>
+    <update id="deleteById">
+        UPDATE table_info SET del_flag=-1 where id=#{tableId} AND is_effective=0
+    </update>
+    <select id="getTableInfoList" resultType="com.ppfuns.entity.base.TableInfo">
+           SELECT <include refid="tableInfoColumns"/> from table_info WHERE 1=1
+
+    </select>
+    <select id="getTableInfoCount" resultType="java.lang.Integer">
+          SELECT count(1) from table_info WHERE 1=1
+    </select>
+    <update id="update">
+          UPDATE table_info SET
+          <if test="isEffective != null">
+              is_effective = #{isEffective},
+          </if>
+        <if test="tableComment != null">
+            table_comment = #{tableComment},
+        </if>
+            update_sql =#{updateSql}
+           where id=#{id}
+    </update>
+    <insert id="insert">
+        INSERT INTO table_info (table_name, table_comment, is_effective, update_sql,create_time, del_flag)
+        VALUES (#{tableName}, #{tableComment},#{isEffective}, #{updateSql}, now(), '1');
+    </insert>
+    <select id="select" resultType="com.ppfuns.entity.base.TableInfo">
+        SELECT <include refid="tableInfoColumns"/> from table_info WHERE 1=1 and is_effective=1
+    </select>
+    <select id="dropTableForDownload" resultType="java.lang.String">
+        DROP TABLE ${tableName}
+    </select>
+</mapper>

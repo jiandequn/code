@@ -1,0 +1,16 @@
+sqoop import \
+-Dmapreduce.job.queuename=${yarn_queue} \
+--connect "${mysql_url}?useUnicode=true&characterEncoding=utf-8" \
+--username ${mysql_username} \
+--password ${mysql_password} \
+--table clean_user \
+--driver com.mysql.jdbc.Driver \
+--fields-terminated-by '\t' \
+--delete-target-dir \
+--num-mappers 1 \
+--hive-import \
+--hive-database $hive_db \
+--hive-table clean_user \
+--hive-overwrite \
+--verbose \
+--outdir ${sqoop_outdir}/mr_java 

@@ -1,0 +1,161 @@
+ drop table IF EXISTS sx_mongo_log;
+create external table IF NOT EXISTS sx_mongo_log(
+     mac string,
+     sn string,
+     ip string,
+     mVersion string,
+     column_id string,
+     column_name string,
+     comsume_time BIGINT,
+     album_duration BIGINT,
+     album_id int,
+     album_name string,
+     content_type string,
+     cp_id int,
+     cp_name string,
+     labels string,
+     op_utime string,
+     video_id int,
+     video_name string,
+     service_index int,
+     status int,
+     u_time string )
+COMMENT '数据采集1.5mongodb日志'
+ PARTITIONED BY (events_type string,t_date string)
+ row format serde
+ 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
+with
+SERDEPROPERTIES
+("separatorChar"=",")
+ location '/data_old/mongo/logs';
+
+ drop table IF EXISTS sx_resume_point_log;
+create table IF NOT EXISTS sx_resume_point_log(
+     mac string,
+     sn string,
+     column_id string,
+     comsume_time BIGINT,
+     album_id int,
+     album_name string,
+     content_type string,
+     video_id int,
+     status int,
+     u_time string )
+COMMENT '数据采集历史点播记录'
+PARTITIONED BY (y string,m string,d string)
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ COLLECTION ITEMS TERMINATED BY ','
+ MAP KEYS TERMINATED BY ':'
+ stored as textfile
+ location '/data_old/hive/resume_point';
+
+drop table IF EXISTS sx_mongo_album_play_log;
+create table IF NOT EXISTS sx_mongo_album_play_log(
+     mac string,
+     sn string,
+     column_id string,
+     album_id int,
+     content_type int,
+     video_id int,
+     consume_time BIGINT comment '011事件状态7的播放时长',
+     stay_duration BIGINT comment'011事件上报时间差',
+     create_time string )
+COMMENT '数据采集历史点播记录'
+PARTITIONED BY (y string,m string,d string)
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ COLLECTION ITEMS TERMINATED BY ','
+ MAP KEYS TERMINATED BY ':'
+ stored as textfile
+ location '/data_old/hive/album_play';
+
+
+drop table IF EXISTS album_play_log_tmp;
+create table IF NOT EXISTS album_play_log_tmp(
+     mac string,
+     sn string,
+     tdata string)
+COMMENT '数据采集历史点播记录'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ COLLECTION ITEMS TERMINATED BY ','
+ MAP KEYS TERMINATED BY ':'
+ stored as textfile
+ location '/data_old/hive/album_play_tmp';
+
+drop table IF EXISTS sx_mongo_album;
+create table IF NOT EXISTS sx_mongo_album(
+
+     album_id int,
+     album_name string,
+     content_type string,
+     cp_id int,
+     cp_name string,
+     labels string )
+COMMENT '数据采集专辑'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ COLLECTION ITEMS TERMINATED BY ','
+ MAP KEYS TERMINATED BY ':'
+ stored as textfile
+ location '/data_old/hive/album/';
+
+drop table IF EXISTS sx_mongo_video;
+create table IF NOT EXISTS sx_mongo_video(
+     album_id int,
+     video_id int,
+     video_name string,
+     service_index int)
+COMMENT '数据采集剧集'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ COLLECTION ITEMS TERMINATED BY ','
+ MAP KEYS TERMINATED BY ':'
+ stored as textfile
+ location '/data_old/hive/video/';
+
+ drop table IF EXISTS sx_mongo_column;
+create table IF NOT EXISTS sx_mongo_column(
+     column_id int,
+     column_name string)
+COMMENT '数据采集栏目'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ COLLECTION ITEMS TERMINATED BY ','
+ MAP KEYS TERMINATED BY ':'
+ stored as textfile
+ location '/data_old/hive/column/';
+
+--加载数据
+load data local inpath '/home/app/201908.csv' into table sx_mongo_log partition(events_type='011',t_date='201908');
+
+--按时间拆分数据
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.exec.max.dynamic.partitions.pernode=2000;
+set mapreduce.reduce.memory.mb=1024;
+set mapred.max.split.size=128000000;
+insert into sx_resume_point_log partition(y,m,d)
+select mac,
+     sn,
+     column_id,
+     comsume_time,
+     album_id,
+     album_name,
+     content_type,
+     video_id,
+     status,
+     u_time,substr(u_time,1,4) y,substr(u_time,6,2) m,substr(u_time,9,2) d from sx_mongo_log  where events_type='011' and t_date='202003_202010';
+
+--创建临时表，把历史点播记录分组
+insert overwrite table album_play_log_tmp
+select mac,sn,column_id,album_id,album_name,content_type,video_id,
+concat_ws(',', collect_set(concat(unix_timestamp(u_time),'-',status,'_',comsume_time))) as tdata
+from sx_resume_point_log
+where concat(y,m,d)>='' and concat(y,m,d)<='' group by 1,2,3,4,5,6,7;
+
+
+select mac,sn,concat_ws(',', sort_array(collect_set(concat(unix_timestamp(u_time),'_',column_id,'_',album_id,'_',video_id,'_',content_type,'_',status,'_',comsume_time)))) as tdata
+from sx_resume_point_log
+where concat(y,m,d)>='20200801' and concat(y,m,d)<='20200802' and sn='0617240050A00098FF6AFF0200' group by 1,2;

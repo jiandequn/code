@@ -1,0 +1,14 @@
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.groupby.orderby.position.alias=true; -- 启用别名对于groupby和orderby
+set hive.vectorized.execution.enabled=false;
+
+--按日统计，区域在线订购产品用户数，次数，价格，金额
+truncate table area_online_order_count_month;
+insert overwrite table area_online_order_count_month
+select a.y,a.m,a.user_type,a.area_code,a.product_id,a.product_name,a.product_type,a.third_product_code,t.present_price,a.user_count,a.order_count,a.order_count*t.present_price as amount from(
+select y,m,user_type,area_code,param['productId'] as product_id,param['productName'] as product_name,param['productType'] as product_type,param['thirdProductCode'] as third_product_code,
+count(distinct if(user_type='OTT',mac,user_id)) user_count,count(distinct param['orderId']) as order_count
+from events_type_log where events_type='ORDER' and concat(y,'-',m,'-',d)>='${startDate}'
+and concat(y,'-',m,'-',d)<'${endDate}' and param['result']='true' group by 1,2,3,4,5,6,7,8)
+a inner join t_price_product t on t.product_id=a.product_id;

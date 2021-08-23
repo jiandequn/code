@@ -1,0 +1,12 @@
+sqoop export \
+--connect '%(db_url)s' \
+--username %(db_username)s \
+--password-file  %(db_pwdfile)s \
+--export-dir /%(hive_province)s/hive/reports/no_app/area_visit_count/day \
+--table noapp_area_visit_count_day \
+--columns t_date,user_type,area_code,page_user_count,play_user_count,play_count,duration \
+--update-key t_date,user_type,area_code \
+--update-mode allowinsert \
+--input-null-non-string '\\N' \
+--input-fields-terminated-by '\t' \
+--outdir %(sqoop_outdir)s/mr_java

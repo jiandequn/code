@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ppfuns.report.mapper.AppAreaVisitCountDayMapper">
+    <sql id="selectAreaListSql">
+          select a.*,t.area_name from(select * from app_area_visit_count_day where ${ew.expression.normal.sqlSegment}) a
+        left join t_area_info t on t.area_no=a.area_code and t.type=a.user_type
+        ${ew.expression.orderBy.sqlSegment}
+    </sql>
+    <select id="areaList" resultType="com.ppfuns.report.entity.AppAreaVisitCountDay">
+      <include refid="selectAreaListSql" />
+    </select>
+    <select id="areaPage" resultType="com.ppfuns.report.entity.AppAreaVisitCountDay">
+        <include refid="selectAreaListSql" />
+    </select>
+</mapper>

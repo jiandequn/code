@@ -1,0 +1,22 @@
+sqoop eval \
+-Dmapreduce.job.queuename=${yarn_queue} \
+--connect "${mysql_url}?useUnicode=true&characterEncoding=utf-8" \
+--username ${mysql_username} \
+--password ${mysql_password} \
+--metadata-transaction-isolation-level 'TRANSACTION_REPEATABLE_READ' \
+--query "delete from app_video_user_count_rank_week where (y>=YEAR(subdate('${startDate}',WEEKDAY('${startDate}')-3)) AND w >= WEEKOFYEAR('${startDate}')) AND (y<=YEAR(subdate('${endDate}',WEEKDAY('${endDate}') - 3)) AND w < WEEKOFYEAR('${endDate}'))"
+
+sqoop export \
+-Dmapreduce.job.queuename=${yarn_queue} \
+--connect "${mysql_url}?useUnicode=true&characterEncoding=utf-8" \
+--username ${mysql_username} \
+--password ${mysql_password} \
+--export-dir /${hive_province}/hive/reports/app/rank/play_video/user_count/week \
+--table app_video_user_count_rank_week \
+--columns y,w,user_type,parent_column_id,album_id,album_name,content_type,content_type_name,video_id,video_name,user_count,rank,play_count,duration \
+--update-key y,w,user_type,parent_column_id,album_id,video_id \
+--update-mode allowinsert \
+--input-null-string '\\N'  \
+--input-null-non-string '\\N' \
+--input-fields-terminated-by '\t' \
+--outdir ${sqoop_outdir}/mr_java

@@ -1,0 +1,17 @@
+#全量导入栏目信息
+sqoop import \
+--connect '%(db_url)s' \
+--username %(db_username)s \
+--password-file  %(db_pwdfile)s \
+--columns column_id,column_code,column_name,parent_id \
+--table t_column_management \
+--driver com.mysql.jdbc.Driver \
+--fields-terminated-by '\t' \
+--delete-target-dir \
+--target-dir '/%(hive_province)s/sqoop/album_tmp' \
+--hive-import \
+--hive-database %(hivedb)s \
+--hive-table t_column_management_tmp \
+--hive-overwrite \
+--outdir %(sqoop_outdir)s/mr_java
+#如果num-mappers设置多个，必须指定mysql表字段进行 --split-by 'parameter_value' \

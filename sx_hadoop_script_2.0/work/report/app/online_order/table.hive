@@ -1,0 +1,51 @@
+drop table IF EXISTS online_order_count_day;
+create table IF NOT EXISTS online_order_count_day(
+     tdate string,
+     user_type string,
+     third_product_code string,
+     user_count int,
+     order_count int COMMENT '订购次数'
+)
+COMMENT '订购按日统计'
+PARTITIONED BY (y string,m string,d string)
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ COLLECTION ITEMS TERMINATED BY ','
+ MAP KEYS TERMINATED BY ':'
+ stored as textfile
+ location '/${hive.province}/hive/report/online_order/count/day';
+
+ drop table IF EXISTS online_order_count_week;
+create table IF NOT EXISTS online_order_count_week(
+     y string,
+     w string,
+     user_type string,
+     third_product_code string,
+     user_count int,
+     order_count int COMMENT '订购次数'
+)
+COMMENT '订购按周统计'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ COLLECTION ITEMS TERMINATED BY ','
+ MAP KEYS TERMINATED BY ':'
+ stored as textfile
+ location '/${hive.province}/hive/report/online_order/count/week';
+
+
+drop table IF EXISTS online_order_count_month;
+create table IF NOT EXISTS online_order_count_month(
+     y string,
+     m string,
+     user_type string,
+     third_product_code string,
+     user_count int,
+     order_count int COMMENT '订购次数'
+)
+COMMENT '订购按月统计'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ COLLECTION ITEMS TERMINATED BY ','
+ MAP KEYS TERMINATED BY ':'
+ stored as textfile
+ location '/${hive.province}/hive/report/online_order/count/month';

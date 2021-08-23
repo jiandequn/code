@@ -1,0 +1,16 @@
+#增量导入栏目信息
+sqoop import \
+--connect '%(db_url)s' \
+--username %(db_username)s \
+--password-file  %(db_pwdfile)s \
+--columns video_id,album_id,video_name \
+--table video_tmp \
+--driver com.mysql.jdbc.Driver \
+--fields-terminated-by '\t' \
+--target-dir '/%(hive_province)s/sqoop/video/' \
+--check-column u_time \
+--incremental lastmodified \
+--last-value '$(date)s' \
+--m 1 \
+--append \
+--outdir %(sqoop_outdir)s/mr_java

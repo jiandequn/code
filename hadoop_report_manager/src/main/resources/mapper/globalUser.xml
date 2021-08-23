@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ppfuns.dao.GlobalUserDao" >
+  <sql id="sqlCondition">
+      <choose>
+          <when test="t.dateType =='week'">
+          </when>
+          <when test="t.dateType =='day'">
+          </when>
+          <when test="t.dateType =='month'">
+          </when>
+          <when test="t.dateType =='year'">
+          </when>
+      </choose>
+  </sql>
+  <sql id="baseField">
+      <choose>
+          <when test="t.dateType =='week'">
+              year,week,
+          </when>
+          <when test="t.dateType =='day'">
+              date_time as dateTime,
+          </when>
+          <when test="t.dateType =='month'">
+              year,month,
+          </when>
+          <when test="t.dateType =='year'">
+              year,
+          </when>
+      </choose>
+      parent_column_id as parentColumnId,user_type as userType
+  </sql>
+  <select id="getCount" parameterType="com.ppfuns.entity.SearchPage"  resultType="java.lang.Integer">
+      select
+      count(1)
+      from  ${t.tableName}
+      where 1=1
+       <include refid="sqlCondition"/>
+  </select>
+   <select id="getList" parameterType="com.ppfuns.entity.SearchPage" resultType="com.ppfuns.entity.GlobalUserEntity">
+        select
+         <include refid="baseField"/>   ,user_count as userCount
+       from ${t.tableName}
+        where 1=1
+        <include refid="sqlCondition"/>
+       <!--<if test="orderBy!=null and orderBy!=''">-->
+           <!--order by ${orderBy}-->
+       <!--</if>-->
+       <!--<if test="pageSize!=null and pageSize!=''">-->
+             <!--limit #{pageNumber,jdbcType=INTEGER}, #{pageSize,jdbcType=INTEGER}-->
+       <!--</if>-->
+    </select>
+    <select id="getFooter" parameterType="com.ppfuns.entity.SearchPage" resultType="com.ppfuns.entity.GlobalUserEntity">
+
+        SELECT
+        '日均用户数' as parentColumnId,
+        CONCAT(totalUserCount,'/',dayNum,'=',totalUserCount/dayNum) AS userCount
+        FROM
+        (
+        SELECT
+        count(1) AS dayNum,
+        sum(user_count) AS totalUserCount
+        FROM
+        ${t.tableName}
+        WHERE
+        1 = 1   <include refid="sqlCondition"/>
+        ) a
+        <!--<if test="orderBy!=null and orderBy!=''">-->
+        <!--order by ${orderBy}-->
+        <!--</if>-->
+        <!--<if test="pageSize!=null and pageSize!=''">-->
+        <!--limit #{pageNumber,jdbcType=INTEGER}, #{pageSize,jdbcType=INTEGER}-->
+        <!--</if>-->
+    </select>
+</mapper>

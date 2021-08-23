@@ -1,0 +1,16 @@
+set hive.exec.parallel=true; 
+insert overwrite table album_label_manager
+select t.label_id,t.label_name from album_label_manager a
+inner join album_label_manager_tmp t on t.label_id=a.label_id
+union all
+select  t.label_id,t.label_name from album_label_manager_tmp t
+left join album_label_manager a on a.label_id=t.label_id
+where a.label_id is null
+union all
+select  t.label_id,t.label_name from album_label_manager t
+left join album_label_manager_tmp a on a.label_id=t.label_id
+where a.label_id is null;
+
+
+
+

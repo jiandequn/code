@@ -1,0 +1,12 @@
+select y,m,d,count(distinct mac,sn) as user_count,count(1) play_cout,sum(consume_time) as consume_time,sum(stay_duration) stay_duration
+from sx_mongo_album_play_log
+group by y,m,d;
+
+hive -e "
+use sx_mongo;
+set hive.groupby.orderby.position.alias=true; -- 启用别名对于groupby和orderby
+set hive.cli.print.header=true;  --将表头输出
+select concat(y,'-',m,'-',d) as t_date,count(distinct mac,sn) as user_count,count(1) as play_count,
+round(sum(consume_time)/3600000,2) as play_time,round(sum(stay_duration)/3600,2) as stay_duration
+from sx_mongo_album_play_log group by 1 order by 1;
+        " | sed 's/[\t]/,/g'  > /home/app/mongo_log/report_tmp/day.csv

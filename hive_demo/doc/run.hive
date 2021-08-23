@@ -1,0 +1,39 @@
+-- 创建云南日志外部表，对hadoop日志数据进行结构化处理
+CREATE EXTERNAL TABLE yn_logs
+(
+ eventsType STRING,
+ mac STRING,
+ sn STRING,
+ userId STRING,
+ userType STRING,
+ remark STRING,
+ createTime STRING
+)
+ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.RegexSerDe'
+WITH SERDEPROPERTIES (
+"input.regex" = "^.*eventsType=(.*);mac=(.*);sn=(.*);userId=(.*);userType=([VODvod12]{1,3});(.*);createTime=(.*):END",
+"output.format.string" = "%1$s %2$s %3$s $4$s %5$s %6$s %7$s"
+)
+location '/data/logs/2019/08/26/10';
+
+
+--进行首页查询导出
+select mac,sn,userId,userType,createTime from yn_logs where eventsType='operationPage';
+
+
+
+
+add jar /home/app/hive_demo-1.0-SNAPSHOT.jar;
+create temporary function first_page as 'com.ppfuns.udtf.FirstPageUDTF';
+
+
+
+-- 查询首页访问记录
+SELECT eventsType,remark,parentColumnId,columnId,afterColumnId,afterColumnCode,areaCode FROM yn_logs
+lateral view first_page(remark) t as parentColumnId,columnId,afterColumnId,afterColumnCode,areaCode
+where eventsType='operationPage' and remark like '%nowSpm=38.PAGE_YNGDJSJ.0.0%';
+
+
+SELECT eventsType,remark,parentColumnId,columnId,afterColumnId,afterColumnCode,areaCode FROM yn_logs
+lateral view first_page(remark) t
+where eventsType='operationPage' and remark like '%nowSpm=38.PAGE_YNGDJSJ.0.0%';

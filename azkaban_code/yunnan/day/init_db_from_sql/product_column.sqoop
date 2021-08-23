@@ -1,0 +1,18 @@
+sqoop import \
+-Dmapreduce.job.queuename=${yarn_queue} \
+--connect "${mysql_url}?useUnicode=true&characterEncoding=utf-8" \
+--username ${mysql_username} \
+--password ${mysql_password} \
+--query 'select column_id,column_name,user_type,start_date,end_date from product_column where $CONDITIONS and is_effective=1' \
+--columns column_id,column_name,user_type,start_date,end_date \
+--driver com.mysql.jdbc.Driver \
+--fields-terminated-by '\t' \
+--delete-target-dir \
+--num-mappers 1 \
+--hive-import \
+--hive-database $hive_db \
+--hive-table product_column \
+--hive-overwrite \
+--target-dir "/${hive_province}/sqoop/tmp/product_column" \
+--verbose \
+--outdir ${sqoop_outdir}/mr_java 

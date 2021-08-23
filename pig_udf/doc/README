@@ -1,0 +1,7 @@
+
+1、把pig_udf 打包；
+2、把pig_udf.jar包,yn_hadoop.pig和yn_script.py脚本放同一个目录下
+3、linux下cd到该目录下
+4、运行 python yn_script.py （计算上周的统计数据）
+5、如果需要统计指定时间的 如 python yn_script.py 2019-10-22 2019-11-11
+

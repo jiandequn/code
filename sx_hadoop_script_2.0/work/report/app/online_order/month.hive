@@ -1,0 +1,9 @@
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.groupby.orderby.position.alias=true; -- 启用别名对于groupby和orderby
+set hive.vectorized.execution.enabled=false;
+--按日统计，在线订购产品用户数，次数
+insert overwrite table online_order_count_month
+select y,m,user_type,param['thirdProductCode'] as third_product_code,count(distinct sn) user_count,
+count(distinct param['orderId']) as order_count from events_type_log where events_type='ORDER'
+and concat(y,'-',m,'-',d)<'${endDate}' and concat(y,'-',m,'-',d)>='${startDate}' and param['result']='true' group by 1,2,3,4;

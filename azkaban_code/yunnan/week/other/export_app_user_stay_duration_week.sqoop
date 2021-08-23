@@ -1,0 +1,21 @@
+sqoop export \
+-Dmapreduce.job.queuename=${yarn_queue} \
+--connect "${mysql_url}?useUnicode=true&characterEncoding=utf-8" \
+--username ${mysql_username} \
+--password ${mysql_password} \
+--export-dir /${hive_province}/hive/log/app_user_stay_duration_week \
+--table app_user_stay_duration_week \
+--columns year,week,parent_column_id,user_type,mac,sn,user_id,area_code,stay_duration \
+--update-key year,week,parent_column_id,user_type,user_id \
+--update-mode allowinsert \
+--input-null-string '\\N'  \
+--input-null-non-string '\\N' \
+--input-fields-terminated-by '\t' \
+--outdir ${sqoop_outdir}/mr_java
+
+
+
+
+
+
+

@@ -1,0 +1,22 @@
+sqoop eval \
+-Dmapreduce.job.queuename=${yarn_queue} \
+--connect "${mysql_url}?useUnicode=true&characterEncoding=utf-8" \
+--username ${mysql_username} \
+--password ${mysql_password} \
+--metadata-transaction-isolation-level 'TRANSACTION_REPEATABLE_READ' \
+--query "delete from app_prize_detail_count_month where concat(y,'-',RIGHT(concat('0',m),2))>=substr('${startDate}',1,7) and concat(y,'-',RIGHT(concat('0',m),2))<substr('${endDate}',1,7)"
+
+sqoop export \
+-Dmapreduce.job.queuename=${yarn_queue} \
+--connect "${mysql_url}?useUnicode=true&characterEncoding=utf-8" \
+--username ${mysql_username} \
+--password ${mysql_password} \
+--export-dir /${hive_province}/hive/reports/app/prize_detail/count/month \
+--table app_prize_detail_count_month \
+--columns y,m,user_type,parent_column_id,prize_id,prize_name,drawed_user_count,drawed_count \
+--update-key y,m,user_type,parent_column_id,prize_id \
+--update-mode allowinsert \
+--input-null-string '\\N'  \
+--input-null-non-string '\\N' \
+--input-fields-terminated-by '\t' \
+--outdir ${sqoop_outdir}/mr_java

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ppfuns.sys.mapper.RolePermissionMapper">
+    <!--=End getUserPerms 根据用户ID查找权限树列表-->
+    <select id="getPermissionAll" resultType="com.ppfuns.util.LayerTree">
+        select p.id,p.name as label, 1 as spread,
+        <choose>
+            <when test="roleId != null">
+                (select count(1) from sys_role_permission rp where rp.permission_id=p.id and role_id=#{roleId}
+                  and  not EXISTS(SELECT 1 from sys_permission p1 WHERE  p1.parent_id=rp.permission_id)
+                )  as checked
+            </when>
+            <otherwise>
+                0 as checked
+            </otherwise>
+        </choose>
+        from  sys_permission p
+        where 1=1
+        <choose>
+            <when test="parentId != null">
+                and parent_id = #{parentId}
+            </when>
+            <otherwise>
+                and parent_id=0
+            </otherwise>
+        </choose>
+    </select>
+</mapper>

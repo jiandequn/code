@@ -1,0 +1,17 @@
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.groupby.orderby.position.alias=true; -- 启用别名对于groupby和orderby
+-- 按周统计专区人均留存时长（H）
+insert overwrite table app_stay_duration_week
+select year(date_sub(next_day(concat(y,'-',m,'-',d),'MO'),4)) as y,weekofyear(concat(y,'-',m,'-',d)) as w, parent_column_id,count(distinct user_id) user_count,sum(stay_duration) as stay_duration
+ from app_user_stay_column_day
+where concat(y,'-',m,'-',d)>='${startDate}' and  concat(y,'-',m,'-',d)<'${endDate}'
+group by 1,2,parent_column_id;
+
+--按周统计各个栏目的的停留时长
+insert overwrite table app_column_stay_duration_week
+select y,w, a.parent_column_id,before_column_id,before_column_code,t.column_name as before_column_name, user_count,stay_duration from(
+select year(date_sub(next_day(concat(y,'-',m,'-',d),'MO'),4)) as y,weekofyear(concat(y,'-',m,'-',d)) as w, parent_column_id,before_column_id,before_column_code,count(distinct user_id) user_count,sum(stay_duration) as stay_duration from app_user_stay_column_day
+where concat(y,'-',m,'-',d)>='${startDate}' and  concat(y,'-',m,'-',d)<'${endDate}'
+group by 1,2, parent_column_id,before_column_id,before_column_code) a
+left join t_column_management t on t.column_id=a.before_column_id;

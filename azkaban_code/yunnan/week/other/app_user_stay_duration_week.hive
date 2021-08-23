@@ -1,0 +1,21 @@
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.groupby.orderby.position.alias=true; -- 启用别名对于groupby和orderby
+insert overwrite table app_user_stay_duration_week
+select year(t_date) as year,weekofyear(t_date) as week,parent_column_id,user_type,
+collect_set(mac)[0] as mac,collect_set(sn)[0] as sn,user_id,
+collect_set(area_code)[0] as area_code,sum(stay_duration) as stay_duration from(
+select parent_column_id,'vod' as user_type,upper(replace(replace(mac,'-',''),':','')) as mac,sn,user_id,area_code,
+from_unixtime(cast(substr(split(param['nowSpm'],'\\.')[4],0,10) as int),'yyyy-MM-dd') as t_date,
+bigint(split(param['nowSpm'],'\\.')[4])-bigint(split(param['afterSpm'],'\\.')[4]) stay_duration from events_type_log
+where param['afterSpm'] RLIKE '[0-9]{1,}\\.[a-zA-z0-9]{1,}\\.[0-9]{1,}\\.[0-9]{1,}\\.[0-9]{13}' and create_time>='${startDate}' and create_time<'${endDate}') a
+group by 1,2,3,4,7;
+
+
+
+
+
+
+
+
+

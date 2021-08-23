@@ -1,0 +1,11 @@
+#导出用户信息到mysql
+sqoop export \
+--connect '%(db_url)s' \
+--username %(db_username)s \
+--password-file  %(db_pwdfile)s \
+--export-dir /%(hive_province)s/hive/user/increase/y=%(y)s/m=%(m)s/d=%(d)s/ \
+--call 'insert_or_update_user' \
+--input-fields-terminated-by "\t" \
+--input-null-string '\\N'  \
+--input-null-non-string '\\N' \
+--outdir %(sqoop_outdir)s/mr_java \

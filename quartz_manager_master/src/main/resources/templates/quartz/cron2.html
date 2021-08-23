@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<cron th:fragment="cron">
+    <div class="layui-row layui-col-space14">
+        <div class="layui-col-md14">
+            <div class="layui-card">
+                <div class="layui-card-header">Cron 配置完整格式为： [秒] [分] [小时] [日] [月] [周] [年]</div>
+                <div class="layui-card-body">
+                    <table class="layui-table">
+                        <colgroup>
+                            <col width="40">
+                            <col width="80">
+                            <col width="150">
+                            <col width="150">
+                            <col width="200">
+                            <col>
+                        </colgroup>
+                        <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>说明</th>
+                            <th>是否必填</th>
+                            <th>允许填写值</th>
+                            <th>允许的通配符 </th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>秒</td>
+                            <td>是</td>
+                            <td>0-59</td>
+                            <td>, - * /</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>分</td>
+                            <td>是</td>
+                            <td>0-59</td>
+                            <td>, - * /</td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>小时</td>
+                            <td>是</td>
+                            <td>0-23</td>
+                            <td>, - * /</td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>日</td>
+                            <td>是</td>
+                            <td>1-31</td>
+                            <td>, - * / L W </td>
+                        </tr>
+                        <tr>
+                            <td>5</td>
+                            <td>月</td>
+                            <td>是</td>
+                            <td>1-12 or JAN-DEC</td>
+                            <td>, - * /</td>
+                        </tr>
+                        <tr>
+                            <td>6</td>
+                            <td>周</td>
+                            <td>是</td>
+                            <td>1-7 or SUN-SAT </td>
+                            <td> , - * ? / L # </td>
+                        </tr>
+                        <tr>
+                            <td>7</td>
+                            <td>年</td>
+                            <td>否</td>
+                            <td>0-59</td>
+                            <td>empty 或 1970-2099</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
+                        <legend>通配符说明</legend>
+                    </fieldset>
+                    <blockquote class="layui-elem-quote layui-quote-nm">
+                        * 表示所有值. 例如:在分的字段上设置 "*",表示每一分钟都会触发。<br>
+                        ? 表示不指定值。使用的场景为不需要关心当前设置这个字段的值。<br>
+                           例如:要在每月的10号触发一个操作，但不关心是周几，所以需要周位置的那个字段设置为"?" 具体设置为 0 0 0 10 * ?- 表示区间。
+                        例如 在小时上设置"10-12" 表示 10,11,12点都会触发。, 表示指定多个值，<br>
+                        例如在周字段上设置 "MON,WED,FRI" 表示周一，周三和周五触发  <br>
+                        / 表示用于递增触发。如在秒上面设置"5/15" 表示从5秒开始，每增15秒触发(5,20,35,50)。<br>
+                        在月字段上设置'1/3'所示每月1号开始，每隔三天触发一次。  <br>
+                        L 表示最后的意思。在日字段设置上，表示当月的最后一天(依据当前月份，<br>
+                        如果是二月还会依据是否是润年[leap]), 在周字段上表示星期六，相当于"7"或"SAT"。<br>
+                        如果在"L"前加上数字，则表示该数据的最后一个。例如在周字段上设置"6L"这样的格式,<br>
+                        则表示“本月最后一个星期五" W 表示离指定日期的最近那个工作日(周一至周五).<br>
+                        例如在日字段上设置"15W"，表示离每月15号最近的那个工作日触发。如果15号正好是周六，<br>
+                        则找最近的周五(14号)触发, 如果15号是周未，则找最近的下周一(16号)触发.如果15号正好在工作日(周一至周五)，<br>
+                        则就在该天触发。如果指定格式为 "1W",它则表示每月1号往后最近的工作日触发。如果1号正是周六，则将在3号下周一触发。<br>
+                        (注，"W"前只能设置具体的数字,不允许区间"-").# 序号(表示每月的第几个周几)，<br>
+                        例如在周字段上设置"6#3"表示在每月的第三个周六.注意如果指定"#5",正好第五周没有周六，<br>
+                        则不会触发该配置(用在母亲节和父亲节再合适不过了) ；<br>
+                        小提示：'L'和 'W'可以一组合使用。如果在日字段上设置"LW",则表示在本月的最后一个工作日触发；<br>
+                        周字段的设置，若使用英文字母是不区分大小写的，即MON与mon相同
+                    </blockquote>
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md14">
+            <div class="layui-card">
+                <div class="layui-card-header">Cron表达式范例</div>
+                <div class="layui-card-body">
+                    每隔5秒执行一次：*/5 * * * * ?  <br>
+                    每隔1分钟执行一次：0 */1 * * * ?   <br>
+                    每天23点执行一次：0 0 23 * * ?    <br>
+                    每天凌晨1点执行一次：0 0 1 * * ?    <br>
+                    每月1号凌晨1点执行一次：0 0 1 1 * ?     <br>
+                    每月最后一天23点执行一次：0 0 23 L * ?       <br>
+                    每周星期天凌晨1点实行一次：0 0 1 ? * L             <br>
+                    在26分、29分、33分执行一次：0 26,29,33 * * * ?            <br>
+                    每天的0点、13点、18点、21点都执行一次：0 0 0,13,18,21 * * ?       <br>
+                </div>
+            </div>
+        </div>
+    </div>
+</cron>
+</body>
+</html>

@@ -1,0 +1,18 @@
+#全量导入栏目信息
+sqoop import \
+-Dmapreduce.job.queuename=${yarn_queue} \
+--connect "${content_mysql_url}?useUnicode=true&characterEncoding=utf-8" \
+--username ${content_mysql_username} \
+--password ${content_mysql_password} \
+--columns product_id,product_name,third_code,third_product_code,original_price,present_price,product_type \
+--table t_price_product \
+--driver com.mysql.jdbc.Driver \
+--fields-terminated-by '\t' \
+--delete-target-dir \
+--target-dir "/${hive_province}/sqoop/tmp/t_price_product_tmp" \
+--hive-import \
+--hive-database $hive_db \
+--hive-table t_price_product_tmp \
+--hive-overwrite \
+--outdir ${sqoop_outdir}/mr_java
+#如果num-mappers设置多个，必须指定mysql表字段进行 --split-by 'parameter_value' \

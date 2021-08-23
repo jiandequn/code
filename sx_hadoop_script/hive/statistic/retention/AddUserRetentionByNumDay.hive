@@ -1,0 +1,14 @@
+use yn_hadoop;
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+
+-- 计算连续N日新增留存用户数AddUserRetentionByNumDay
+
+--统计新增用用户留存数据 add_page_user_day
+insert  overwrite table  add_retention_count_day partition(t_date)
+select a.tDate,a.parent_column_id,a.user_type,count(1) as user_count from(
+select '${startDate}' as t_date, parent_column_id,user_type,user_id from add_page_user_day where concat(y,'-',m,'-',d)>='${startDate}' and concat(y,'-',m,'-',d)<='${endDate}'
+group by parent_column_id,user_type,user_id  having datediff('${endDate}','${startDate}') = count(1)
+) a group by a.t_date,a.parent_column_id,a.user_type
+
+

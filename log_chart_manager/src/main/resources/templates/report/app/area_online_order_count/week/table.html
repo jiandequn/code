@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <base th:href="${#request.getContextPath()}+'/'">
+</head>
+<body>
+<header th:fragment="tableList" th:with="title='区域在线订购日统计'">
+    <form id="searchForm" class="layui-form layui-form-pane" method="post" action=""
+          lay-filter="searchFormFilter">
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">用户类型</label>
+                <div class="layui-input-inline">
+                    <select id="userType" name="userType" lay-verify="required" lay-filter="userTypeFilter">
+                        <option label="OTT" th:selected="${ppfuns.userType=='OTT'}" >OTT</option>
+                        <option label="VOD" th:selected="${ppfuns.userType=='VOD'}">VOD</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="layui-inline">
+                <label class="layui-form-label">产品名称</label>
+                <div class="layui-input-inline">
+                    <input type="text" id="productName" name="productName" class="layui-input" />
+                </div>
+            </div>
+            <div class="layui-inline">
+                <label class="layui-form-label">产品ID</label>
+                <div class="layui-input-inline">
+                    <input type="text" id="productId" name="productId" class="layui-input" />
+                </div>
+            </div>
+            <div class="layui-inline">
+                <label class="layui-form-label">产品Code</label>
+                <div class="layui-input-inline">
+                    <input type="text" id="thirdProductCode" name="thirdProductCode" class="layui-input" />
+                </div>
+            </div>
+            <div class="layui-inline">
+                <label class="layui-form-label">时间</label>
+                <div class="layui-input-inline" style="width: 100px;">
+                    <input name="startDate" id="insertTimeStart" placeholder="yyyy-MM-dd" autocomplete="off"
+                           class="layui-input" type="text"/>
+                </div>
+                <div class="layui-form-mid">-</div>
+                <div class="layui-input-inline" style="width: 100px;">
+                    <input name="endDate" id="insertTimeEnd" placeholder="yyyy-MM-dd" autocomplete="off"
+                           class="layui-input" type="text"/>
+                </div>
+            </div>
+            <div class="layui-inline">
+                <label class="layui-form-label">区域</label>
+                <div class="layui-input-inline" style="width: 300px;">
+                    <div id="areaCodes" style="width: 300px; "></div>
+                </div>
+            </div>
+            <button id="reset" type="reset" class="layui-btn" hidden="hidden" style="display:none;">重置</button>
+            <button id="searchSubmit" type="button" class="layui-btn" lay-submit="" lay-filter="searchSubmit" hidden="hidden" style="display:none;">查询</button>
+            <button class="layui-btn layui-icon-export" type="button" lay-submit="" lay-filter="download" hidden="hidden" style="display:none;">下载Excel</button>
+        </div>
+        <!--        <div class="layui-form-item">-->
+        <!--            <button type="reset" class="layui-btn layui-btn-primary">重置</button>-->
+
+        <!--        </div>-->
+    </form>
+<!--    <hr class="layui-bg-black"/>-->
+    <script type="text/html" id="toolbarReport">
+        <div class="layui-btn-container">
+            &nbsp;  &nbsp;
+            <button  class="layui-btn layui-btn-primary layui-btn-sm" onclick='$("#reset").trigger("click");'>重置</button>
+            <button  class="layui-btn layui-btn-sm" onclick='$("#searchSubmit").trigger("click");' >查询</button>
+
+        </div>
+    </script>
+    <table id="reportList" lay-filter="reportTable"></table>
+    <script type="text/javascript" th:src="@{/js/report/common.js}"></script>
+    <script th:src="@{/js/dateUtils.js}"></script>
+    <script type="text/javascript">
+
+    </script>
+    <script>
+        var tableIns;
+        var pageCurr;
+        var tableSort = [{field: 'y', type: 'desc'},{field: 'w', type: 'desc'}]
+        var currDate = getYesterday();
+        layui.use(['form', 'laydate', 'element', 'table'], function () {
+            var form = layui.form;
+            var laydate = layui.laydate;
+            var element = layui.element;
+            laydate.render({
+                elem: '#insertTimeStart'
+                , trigger: 'click'//添加属性
+            });
+            laydate.render({
+                elem: '#insertTimeEnd'
+                , trigger: 'click'//添加属性
+            });
+            form.on('select(userTypeFilter)', function(data){
+                initSxSelect(xmSelect,"areaCodes",data.value)
+            });
+            form.render("select");
+            form.on('submit(searchSubmit)', function (data) {
+                queryTablePageByOrderby(tableIns,data,pageCurr,tableSort)
+                return false;
+            });
+            form.on('submit(download)', function (data) {
+                downLoadFile("chart/export", "区域在线订购日统计", data.field)
+                return false;
+            });
+        });
+        //加载组件
+        layui.config({
+            base: '../../layui/extend/'
+        }).extend({
+            xmSelect: 'xm-select'
+        }).use(['xmSelect'], function(){
+            xmSelect = layui.xmSelect;
+            //渲染多选
+            initSxSelect(xmSelect,"areaCodes",$('#userType').find("option:selected").val());
+        })
+        layui.use('table', function () {
+            var table = layui.table;
+            tableIns = table.render({
+                elem: '#reportList'
+                , url: 'list'
+                , method: 'post' //默认：get请求
+                , cellMinWidth: 80
+                , height: 'full-200'
+                , page: true
+                ,toolbar: '#toolbarReport' //开启头部工具栏，并为其绑定左侧模板
+                ,defaultToolbar: ['filter', 'print', 'exports']
+                , autoSort: false
+                , mutlSort:true
+                , where: {
+                    userType: $('#userType').find("option:selected").val(),
+                    orderby:getOrderByParams(tableIns,tableSort)
+                }
+                , initSort: tableSort
+                , request: {
+                    pageName: 'page' //页码的参数名称，默认：page
+                    , limitName: 'limit' //每页数据量的参数名，默认：limit
+                }
+                , response: {
+                    statusName: 'status' //数据状态的字段名称，默认：code
+                    , statusCode: 200 //成功的状态码，默认：0
+                    , countName: 'total' //数据总数的字段名称，默认：count
+                    , dataName: 'rows' //数据列表的字段名称，默认：data
+                }
+                , cols: [
+                    [{type: 'numbers'}
+                        , {field: 'y', title: '年份',sort: true}
+                        , {field: 'w', title: '周',sort: true}
+                        , {field: 'userType', title: '用户类型'}
+                        , {field: 'areaCode', title: '区域码',sort:true}
+                        , {field: 'areaName', title: '区域名称'}
+                        , {field: 'productId', title: '产品ID',sort: true}
+                        , {field: 'productName', title: '产品名称'}
+                        , {field: 'productType', title: '产品类型'}
+                        , {field: 'thirdProductCode', title: '产品Code'}
+                        , {field: 'presentPrice', title: '价格'}
+                        , {field: 'userCount', title: '订购用户数',sort: true}
+                        , {field: 'orderCount', title: '订购次数',sort: true}
+                        , {field: 'amount', title: '金额',sort: true}
+                    ]
+                ]
+                , done: function (res, curr, count) {
+                    pageCurr = curr;
+                }
+            });
+            //触发排序事件
+            table.on('sort(reportTable)', function (obj) { //注：sort 是工具条事件名，test 是 table 原始容器的属性 lay-filter="对应的值"
+                tableSort=obj;//等价于this.sortCols;或者${this}[0].sortCols
+                $('#searchSubmit').trigger("click");
+            });
+        });
+
+    </script>
+</header>
+</body>
+</html>

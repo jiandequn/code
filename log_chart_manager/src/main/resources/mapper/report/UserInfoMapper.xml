@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ppfuns.report.mapper.UserInfoMapper">
+    <select id="list2" resultType="com.ppfuns.report.entity.UserInfo">
+        SELECT
+           user_info.*,t.area_name as area_name
+        FROM
+        user_info
+        left join t_area_info t on t.area_no=user_info.area_code and t.type=user_info.user_type
+        ${ew.customSqlSegment}
+    </select>
+    <select id="page2" resultType="com.ppfuns.report.entity.UserInfo" >
+           SELECT
+           user_info.*,t.area_name as area_name
+        FROM
+        user_info
+        left join t_area_info t on t.area_no=user_info.area_code and t.type=user_info.user_type
+        ${ew.customSqlSegment}
+    </select>
+    <select id="areaUserCountList" resultType="java.util.HashMap">
+        select a.*,t.area_name as area_name from (
+        SELECT
+        <choose>
+            <when test="dateType  == 'day'">
+                SUBSTR(create_time, 1, 10) AS t_date,
+            </when>
+            <when test="dateType == 'week'">
+                YEAR(ADDDATE(create_time,6 - WEEKDAY(create_time))) as y,WEEKOFYEAR(create_time) w,
+            </when>
+            <when test="dateType == 'month'">
+                year(create_time) as y,month(create_time) as m,
+            </when>
+            <when test="dateType == 'year'">
+                year(create_time) as y,
+            </when>
+            <when test="dateType == 'quarter'">
+                year(create_time) as y,quarter(create_time) as q,
+            </when>
+            <otherwise>
+                SUBSTR(create_time, 1, 10) AS t_date,
+            </otherwise>
+        </choose>
+
+        parent_column_id,
+        user_type,
+        area_code,
+        count(1) as user_count
+        FROM
+        user_info
+        ${ew.customSqlSegment}
+     ) a
+            left join t_area_info t on t.area_no=a.area_code and t.type=a.user_type
+    </select>
+    <select id="areaUserCountPage" resultType="java.util.HashMap">
+        select a.*,t.area_name as area_name from (
+        SELECT
+        <choose>
+            <when test="dateType  == 'day'">
+                SUBSTR(create_time, 1, 10) AS t_date,
+            </when>
+            <when test="dateType == 'week'">
+                YEAR(ADDDATE(create_time,6 - WEEKDAY(create_time))) as y,WEEKOFYEAR(create_time) w,
+            </when>
+            <when test="dateType == 'month'">
+                year(create_time) as y,month(create_time) as m,
+            </when>
+            <when test="dateType == 'year'">
+                year(create_time) as y,
+            </when>
+            <when test="dateType == 'quarter'">
+                year(create_time) as y,quarter(create_time) as q,
+            </when>
+            <otherwise> SUBSTR(create_time, 1, 10) AS t_date,</otherwise>
+        </choose>
+        parent_column_id,
+        user_type,
+        area_code,
+        count(1) user_count
+        FROM
+        user_info
+        ${ew.customSqlSegment}) a
+        left join t_area_info t on t.area_no=a.area_code and t.type=a.user_type
+    </select>
+    <sql id="noAppAreaUserCount_sql">
+        select b.*,t.area_name as area_name from (
+        select
+        <choose>
+            <when test="ew.dateType  == 'day'">
+                SUBSTR(create_time, 1, 10) AS t_date,
+            </when>
+            <when test="ew.dateType == 'week'">
+                YEAR(ADDDATE(create_time,6 - WEEKDAY(create_time))) as y,WEEKOFYEAR(create_time) w,
+            </when>
+            <when test="ew.dateType == 'month'">
+                year(create_time) as y,month(create_time) as m,
+            </when>
+            <when test="ew.dateType == 'year'">
+                year(create_time) as y,
+            </when>
+            <when test="ew.dateType == 'quarter'">
+                year(create_time) as y,quarter(create_time) as q,
+            </when>
+            <otherwise>
+                SUBSTR(create_time, 1, 10) AS t_date,
+            </otherwise>
+        </choose>
+           user_type,area_code,count(user_id) as user_count
+        from (
+        select user_type,user_id,max(area_code) as area_code,min(create_time) as create_time from user_info
+        where 1=1
+        <if test="ew != null">
+            <if test="ew.userType != null">
+                and user_type=#{ew.userType}
+            </if>
+            <if test="ew.areaCode != null">
+                and area_code=#{ew.areaCode}
+            </if>
+            <if test="ew.startDate != null">
+                and create_time &gt;=#{ew.startDate}
+            </if>
+            <if test="ew.endDate != null">
+                and create_time &lt;=#{ew.endDate}
+            </if>
+        </if>
+        group by user_type,user_id
+        ) a group by
+        <choose>
+            <when test="ew.dateType  == 'day'">
+                t_date,
+            </when>
+            <when test="ew.dateType == 'week'">
+                y,w,
+            </when>
+            <when test="ew.dateType == 'month'">
+                y,m,
+            </when>
+            <when test="ew.dateType == 'year'">
+                y,
+            </when>
+            <when test="ew.dateType == 'quarter'">
+                y,q,
+            </when>
+            <otherwise>
+                t_date,
+            </otherwise>
+        </choose>
+        user_type,area_code) b
+        left join t_area_info t on t.area_no=b.area_code and t.type=b.user_type
+    </sql>
+    <select id="noAppAreaUserCountList" resultType="java.util.HashMap">
+      <include refid="noAppAreaUserCount_sql"></include>
+    </select>
+    <select id="noAppAreaUserCountPage" resultType="java.util.HashMap">
+        <include refid="noAppAreaUserCount_sql"></include>
+    </select>
+    <select id="getAreaIncreaseUserCountList" resultType="com.ppfuns.report.entity.AppAreaVisitCountDay">
+        select SUBSTR(create_time, 1, 10) AS t_date,user_type,area_code,
+         <if test="params.parentColumnId != null and params.parentColumnId != ''">
+             parent_column_id,
+         </if>
+         count(user_id) as add_user_count from
+        <choose>
+            <when test="params.parentColumnId != null and params.parentColumnId != ''">
+                user_info ui
+                where  create_time &lt;=#{params.endDate} and create_time &gt;=#{params.startDate} and user_type=#{params.userType}
+                  and parent_column_id=#{params.parentColumnId}
+            </when>
+            <otherwise>
+                (select user_type, user_id,max(area_code) as area_code,min(create_time) as create_time from user_info
+                where create_time &lt;=#{params.endDate}
+                group by user_type,user_id) as ui
+                where ui.create_time &gt;=#{params.startDate}
+            </otherwise>
+        </choose>
+        group by t_date,user_type,area_code
+        <if test="params.parentColumnId != null and params.parentColumnId != ''">
+            ,parent_column_id
+        </if>
+    </select>
+    <select id="getTotalAreaVisitUserCount" resultType="com.ppfuns.report.entity.AppAreaVisitCountDay">
+        select #{params.endDate} AS t_date,user_type,area_code,
+        <if test="params.parentColumnId != null and params.parentColumnId != ''">
+            parent_column_id,
+        </if>
+        count(user_id) as total_user_count from
+        <choose>
+            <when test="params.parentColumnId != null and params.parentColumnId != ''">
+                user_info ui
+                where  SUBSTR(create_time, 1, 10) &lt;=#{params.endDate} and user_type=#{params.userType}
+                and parent_column_id=#{params.parentColumnId}
+            </when>
+            <otherwise>
+                (select user_type, user_id,max(area_code) as area_code,min(create_time) as create_time from user_info
+                where SUBSTR(create_time, 1, 10) &lt;=#{params.endDate}
+                group by user_type,user_id) as ui
+            </otherwise>
+        </choose>
+        group by user_type,area_code
+        <if test="params.parentColumnId != null and params.parentColumnId != ''">
+            ,parent_column_id
+        </if>
+    </select>
+</mapper>

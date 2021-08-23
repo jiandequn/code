@@ -1,0 +1,54 @@
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.groupby.orderby.position.alias=true; -- 启用别名对于groupby和orderby
+set hive.auto.convert.join = false;
+
+-- 计算 专辑播放情况 按周
+drop table if exists app_content_type_album_count_week_temp;
+create TEMPORARY table app_content_type_album_count_week_temp as
+select y,w,user_type,t.parent_column_id,act.content_type,act.content_type_name,a.album_id,a.album_name,t.user_count,t.play_count,duration from (
+select  year(date_sub(next_day(concat(y,'-',m,'-',d),'MO'),4)) as y,weekofyear(concat(y,'-',m,'-',d)) as w,user_type,parent_column_id,album_id,count(distinct user_id) as user_count,sum(1) as play_count,
+sum(duration) as duration
+from app_album_play_log
+where concat(y,'-',m,'-',d)>='${startDate}'
+and concat(y,'-',m,'-',d)<'${endDate}' group by 1,2,3,4,5 cluster by 3,4) t
+inner join album a on a.album_id=t.album_id
+inner join album_content_type act on act.content_type=a.content_type;
+
+-- 按月统计各个内容类型下专辑播放用户数排行榜前20
+insert overwrite table app_content_type_album_user_count_rank_week
+ select y,w,user_type,parent_column_id,content_type,content_type_name,album_id,album_name,user_count,rank,play_count,duration from(
+select y,w,user_type,parent_column_id,content_type,content_type_name,album_id,album_name,user_count,play_count,duration,
+ dense_rank() OVER (partition by y,w,user_type,parent_column_id,content_type ORDER BY user_count desc) rank from app_content_type_album_count_week_temp )t
+ where t.rank<=20 order by 1,2,4,5,10;
+
+-- 按月统计内容类型专辑播放次数排行榜前20
+insert overwrite table app_content_type_album_play_count_rank_week
+ select y,w,user_type,parent_column_id,content_type,content_type_name,album_id,album_name,play_count,rank,user_count,duration from(
+select y,w,user_type,parent_column_id,content_type,content_type_name,album_id,album_name,play_count,user_count,duration,
+ dense_rank() OVER (partition by y,w,user_type,parent_column_id,content_type ORDER BY play_count desc) rank from app_content_type_album_count_week_temp )t
+ where t.rank<=20 order by 1,2,4,5,10;
+
+-- 按月统计各个内容类型下专辑播放用户数排行榜前20
+insert overwrite table app_album_user_count_rank_week
+ select y,w,user_type,parent_column_id,album_id,album_name,content_type,content_type_name,user_count,rank,play_count,duration from(
+select y,w,user_type,parent_column_id,content_type,content_type_name,album_id,album_name,user_count,play_count,duration,
+ dense_rank() OVER (partition by y,w,user_type,parent_column_id ORDER BY user_count desc) rank from app_content_type_album_count_week_temp )t
+ where t.rank<=20 order by 1,2,4,5,10;
+
+
+ -- 按月统计内容类型专辑播放次数排行榜前20
+insert overwrite table app_content_type_album_duration_rank_week
+ select y,w,user_type,parent_column_id,content_type,content_type_name,album_id,album_name,duration,rank,user_count,play_count from(
+select y,w,user_type,parent_column_id,content_type,content_type_name,album_id,album_name,duration,user_count,play_count,
+ dense_rank() OVER (partition by y,w,user_type,parent_column_id,content_type ORDER BY duration desc) rank from app_content_type_album_count_week_temp )t
+ where t.rank<=20 order by 1,2,4,5,10;
+
+-- 按月统计各个内容类型下专辑播放用户数排行榜前20
+insert overwrite table app_album_duration_rank_week
+ select y,w,user_type,parent_column_id,album_id,album_name,content_type,content_type_name,duration,rank,user_count,play_count from(
+select y,w,user_type,parent_column_id,content_type,content_type_name,album_id,album_name,duration,user_count,play_count,
+ dense_rank() OVER (partition by y,w,user_type,parent_column_id ORDER BY duration desc) rank from app_content_type_album_count_week_temp )t
+ where t.rank<=20 order by 1,2,4,5,10;
+
+

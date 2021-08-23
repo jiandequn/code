@@ -1,0 +1,11 @@
+-- 必须制定驱动名，否则报错
+sqoop import --connect jdbc:mysql://192.168.15.50:3306/sx_hadoop \
+--username kfyw \
+--password 123456 \
+--table clean_user \
+--driver com.mysql.jdbc.Driver \
+--append \
+--target-dir /test
+
+
+

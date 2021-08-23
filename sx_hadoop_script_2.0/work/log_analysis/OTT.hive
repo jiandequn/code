@@ -1,0 +1,41 @@
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.exec.max.dynamic.partitions.pernode=2000;
+set hive.exec.parallel=true;
+set hive.exec.parallel.thread.number=16;   # 并行度
+set mapreduce.job.reduce.slowstart.completedmaps=0.01;
+set hive.merge.mapfiles = true;    --#在Map-only的任务结束时合并小文件
+set hive.merge.mapredfiles = true; --#在Map-Reduce的任务结束时合并小文件
+set hive.merge.size.per.task = 256000000; -- #合并文件的大小
+set hive.merge.smallfiles.avgsize=16000000;
+set hive.auto.convert.join=true;  --是否自动转换为mapjoin
+set hive.vectorized.execution.enabled=false;
+from(select
+/*+mapjoin(p)*/
+events_name,if(area_code=='undefined',NULL,area_code) as area_code,mac,sn,yl.user_id,ca,p.user_type as user_type,parent_column_id,create_time,str_to_map(data,';','=') as param,events_type,substr(create_time,1,4) y,substr(create_time,6,2) m,substr(create_time,9,2) d  from source_logs yl
+inner join product_column p on p.column_id=yl.parent_column_id and p.start_date<=yl.create_time and p.end_date>yl.create_time
+left join clean_user c on c.user_id = yl.user_id and c.user_type=p.user_type
+where concat(y,'-',m,'-',d)>=date_add('${startDate}',-1) and concat(y,'-',m,'-',d)<='${endDate}' and create_time>concat(date_add('${startDate}',-1),' ','21:30:00') and create_time<=concat('${endDate}',' ','02:30:00') and c.user_id is null) c
+insert overwrite table events_type_log partition(events_type,y,m,d) select events_name,area_code,mac,sn,user_id,ca,user_type,parent_column_id,create_time,param,events_type,y,m,d where concat(y,'-',m,'-',d)>='${startDate}' and concat(y,'-',m,'-',d)<'${endDate}'
+insert overwrite table app_album_play_log_tmp
+select parent_column_id,user_id,user_type,collect_set(area_code)[0] as area_code,param['albumId'] as album_id,param['videoId'] as video_id,concat_ws(',', collect_set(concat(unix_timestamp(create_time),'_',param['timePosition']))) as tdata
+where events_type='COLUMN_TYPE_HISTORY_POINT' and param['operateType']='add' group by 1,2,3,5,6;
+
+
+
+
+select
+/*+mapjoin(p)*/
+events_name,if(area_code=='undefined',NULL,area_code) as area_code,mac,sn,yl.user_id,ca,p.user_type as user_type,parent_column_id,create_time,str_to_map(data,';','=') as param,events_type from source_logs yl
+inner join product_column p on p.column_id=yl.parent_column_id and p.start_date<=yl.create_time and p.end_date>yl.create_time
+left join clean_user c on c.user_id = yl.user_id and c.user_type=p.user_type
+where concat(y,'-',m,'-',d)>=date_add('${startDate}',-1) and concat(y,'-',m,'-',d)<='${endDate}' and create_time>concat(date_add('${startDate}',-1),' ','21:30:00') and create_time<=concat('${endDate}',' ','02:30:00') and c.user_id is null
+
+create TEMPORARY table app_bookmark_rank_day_tmp as
+select
+/*+mapjoin(p)*/
+yl.user_id,p.user_type as user_type,parent_column_id,,concat_ws(',', collect_set(concat(unix_timestamp(create_time),'|',y1.data,'|',events_type,'|',events_name,'|',area_code))) as tdata from source_logs yl
+inner join product_column p on p.column_id=yl.parent_column_id and p.start_date<=yl.create_time and p.end_date>yl.create_time
+left join clean_user c on c.user_id = yl.user_id and c.user_type=p.user_type
+where concat(y,'-',m,'-',d)>=date_add('${startDate}',-1) and concat(y,'-',m,'-',d)<='${endDate}' and create_time>concat(date_add('${startDate}',-1),' ','21:30:00') and create_time<=concat('${endDate}',' ','02:30:00') and c.user_id is null
+group by yl.user_id,p.user_type,parent_column_id

@@ -1,0 +1,1276 @@
+-- 天新增用户数据
+drop table IF EXISTS app_increase_user;
+create table IF NOT EXISTS app_increase_user(
+     parent_column_id string,
+     user_type string,
+     user_id string,
+     area_code string,
+     create_time STRING COMMENT '最近新增时间'
+)
+COMMENT '新增用户数据'
+PARTITIONED BY (y string,m string,d string)
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ COLLECTION ITEMS TERMINATED BY ','
+ MAP KEYS TERMINATED BY ':'
+ stored as textfile
+ location '/${hive.province}/hive/reports/user/increase';
+
+
+ --专区日访问用户数
+drop table IF EXISTS app_area_visit_count_day;
+create table IF NOT EXISTS app_area_visit_count_day(
+     t_date string comment '日期',
+     parent_column_id string COMMENT '专区',
+     user_type string,
+     area_code string COMMENT '区域信息',
+     page_user_count INT COMMENT '访问用户数',
+     play_user_count INT COMMENT '点播用户数',
+     play_count INT COMMENT '播放次数',
+     duration BIGINT COMMENT '播放时长'
+)
+ COMMENT '专区日访问用户数点播数点播时长'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/area_visit_count/day';
+
+
+ --非专区日访问用户数
+drop table IF EXISTS noapp_area_visit_count_day;
+create table IF NOT EXISTS noapp_area_visit_count_day(
+     t_date string comment '日期',
+     user_type string,
+     area_code string COMMENT '区域信息',
+     page_user_count INT COMMENT '访问用户数',
+     play_user_count INT COMMENT '点播用户数',
+     play_count INT COMMENT '播放次数',
+     duration BIGINT COMMENT '播放时长'
+)
+ COMMENT '非专区日访问用户数点播数点播时长'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/no_app/area_visit_count/day';
+
+
+  --专区周访问用户数
+drop table IF EXISTS app_area_visit_count_week;
+create table IF NOT EXISTS app_area_visit_count_week(
+     y INT comment '年份',
+     w INT comment '周',
+     parent_column_id string COMMENT '专区',
+     user_type string,
+     area_code string COMMENT '区域信息',
+     page_user_count INT COMMENT '访问用户数',
+     play_user_count INT COMMENT '点播用户数',
+     play_count INT COMMENT '播放次数',
+     duration BIGINT COMMENT '播放时长'
+)
+ COMMENT '专区周访问用户数点播数点播时长'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/area_visit_count/week';
+
+
+ --非专区周访问用户数
+drop table IF EXISTS noapp_area_visit_count_week;
+create table IF NOT EXISTS noapp_area_visit_count_week(
+      y INT comment '年份',
+     w INT comment '周',
+     user_type string,
+     area_code string COMMENT '区域信息',
+     page_user_count INT COMMENT '访问用户数',
+     play_user_count INT COMMENT '点播用户数',
+     play_count INT COMMENT '播放次数',
+     duration BIGINT COMMENT '播放时长'
+)
+ COMMENT '非专区周访问用户数点播数点播时长'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/no_app/area_visit_count/week';
+
+  --专区月访问用户数
+drop table IF EXISTS app_area_visit_count_month;
+create table IF NOT EXISTS app_area_visit_count_month(
+     y INT comment '年份',
+     m INT comment '月',
+     parent_column_id string COMMENT '专区',
+     user_type string,
+     area_code string COMMENT '区域信息',
+     page_user_count INT COMMENT '访问用户数',
+     play_user_count INT COMMENT '点播用户数',
+     play_count INT COMMENT '播放次数',
+     duration BIGINT COMMENT '播放时长'
+)
+ COMMENT '专区月访问用户数点播数点播时长'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/area_visit_count/month';
+
+
+ --非专区月访问用户数
+drop table IF EXISTS noapp_area_visit_count_month;
+create table IF NOT EXISTS noapp_area_visit_count_month(
+      y INT comment '年份',
+     m INT comment '月',
+     user_type string,
+     area_code string COMMENT '区域信息',
+     page_user_count INT COMMENT '访问用户数',
+     play_user_count INT COMMENT '点播用户数',
+     play_count INT COMMENT '播放次数',
+     duration BIGINT COMMENT '播放时长'
+)
+ COMMENT '非专区月访问用户数点播数点播时长'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/no_app/area_visit_count/month';
+
+-- 专区留存用户数
+drop table IF EXISTS app_retention_count_day;
+create table IF NOT EXISTS app_retention_count_day(
+     t_date string comment '日期',
+     parent_column_Id string COMMENT '专区ID',
+     user_type string COMMENT '用户类型',
+     user_count INT COMMENT '访问用户数'
+)
+ COMMENT '留存用户数'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/retention/user/day';
+
+
+drop table IF EXISTS app_bookmark_rank;
+create table IF NOT EXISTS app_bookmark_rank(
+     t_date STRING COMMENT '当前日期',
+     parent_column_Id string COMMENT '专区ID',
+     album_id string COMMENT '内容ID',
+     album_name string COMMENT '内容ID',
+     content_type string COMMENT '内容ID',
+     content_type_name string COMMENT '内容ID',
+     count INT COMMENT '数量',
+     rank INT COMMENT '排名'
+)COMMENT '专区书签收藏排行'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/rank/album_bookmark/total';
+
+drop table IF EXISTS app_bookmark_rank_day;
+create table IF NOT EXISTS app_bookmark_rank_day(
+     t_date STRING COMMENT '当前日期',
+     parent_column_Id string COMMENT '专区ID',
+     album_id string COMMENT '内容ID',
+     album_name string COMMENT '内容ID',
+     content_type string COMMENT '内容ID',
+     content_type_name string COMMENT '内容ID',
+     count INT COMMENT '数量',
+     rank INT COMMENT '排名'
+)COMMENT '专区书签收藏排行'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/rank/album_bookmark/day';
+
+drop table IF EXISTS app_bookmark_rank_week;
+create table IF NOT EXISTS app_bookmark_rank_week(
+     y STRING COMMENT '年份',
+     w STRING COMMENT '周',
+     parent_column_Id string COMMENT '专区ID',
+     album_id string COMMENT '内容ID',
+     album_name string COMMENT '内容ID',
+     content_type string COMMENT '内容ID',
+     content_type_name string COMMENT '内容ID',
+     count INT COMMENT '数量',
+     rank INT COMMENT '排名'
+)COMMENT '专区书签收藏排行'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/rank/album_bookmark/week';
+
+
+ drop table IF EXISTS app_search_album_rank;
+create table IF NOT EXISTS app_search_album_rank(
+     t_date STRING COMMENT '日期',
+     parent_column_Id string COMMENT '专区ID',
+     album_id string COMMENT '内容ID',
+     album_name string COMMENT '内容ID',
+     content_type string COMMENT '内容ID',
+     content_type_name string COMMENT '内容ID',
+     count INT COMMENT '浏览数',
+     rank INT COMMENT '排名'
+)COMMENT '专区搜索专辑总排行'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/rank/search_album/total';
+
+drop table IF EXISTS app_search_album_rank_day;
+create table IF NOT EXISTS app_search_album_rank_day(
+     t_date STRING COMMENT '日期',
+     parent_column_Id string COMMENT '专区ID',
+     album_id string COMMENT '内容ID',
+     album_name string COMMENT '内容ID',
+     content_type string COMMENT '内容ID',
+     content_type_name string COMMENT '内容ID',
+     count INT COMMENT '浏览数',
+     rank INT COMMENT '排名'
+)COMMENT '专区搜索专辑日排行'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/rank/search_album/day';
+
+ drop table IF EXISTS app_search_album_rank_week;
+create table IF NOT EXISTS app_search_album_rank_week(
+     y STRING COMMENT '年份',
+     w STRING COMMENT '周',
+     parent_column_Id string COMMENT '专区ID',
+     album_id string COMMENT '内容ID',
+     album_name string COMMENT '内容ID',
+     content_type string COMMENT '内容ID',
+     content_type_name string COMMENT '内容ID',
+     count INT COMMENT '浏览数',
+     rank INT COMMENT '排名'
+)COMMENT '专区搜索专辑排行'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/rank/search_album/week';
+
+drop table IF EXISTS detail_page_visit_user;
+create table IF NOT EXISTS app_detail_page_count(
+     t_date STRING COMMENT '日期',
+     parent_column_Id string COMMENT '专区ID',
+     user_type string COMMENT '用户类型',
+     user_count INT COMMENT '用户数',
+     visit_count INT COMMENT '浏览数'
+)COMMENT '专区详情页访问用户数'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/detail_page/count/total';
+
+drop table IF EXISTS app_detail_page_count_day;
+create table IF NOT EXISTS app_detail_page_count_day(
+     t_date STRING COMMENT '日期',
+     parent_column_Id string COMMENT '专区ID',
+     user_type string COMMENT '用户类型',
+     user_count INT COMMENT '用户数',
+     visit_count INT COMMENT '浏览数'
+)COMMENT '专区详情页日访问用户数'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/detail_page/count/day';
+
+drop table IF EXISTS app_detail_page_count_week;
+create table IF NOT EXISTS app_detail_page_count_week(
+     y INT COMMENT '年份',
+     w INT COMMENT '周',
+     parent_column_Id string COMMENT '专区ID',
+     user_type string COMMENT '用户类型',
+     user_count INT COMMENT '用户数',
+     visit_count INT COMMENT '浏览数'
+)COMMENT '专区详情页周访问用户数'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/detail_page/count/week';
+
+drop table IF EXISTS app_subscribe_label_count;
+create table IF NOT EXISTS app_subscribe_label_count(
+     t_date STRING COMMENT '日期',
+     parent_column_Id string COMMENT '专区ID',
+     label_id INT COMMENT '标签ID',
+     label_name string COMMENT '标签名称',
+     subscribe_count INT COMMENT '订阅标签数'
+)COMMENT '标签累计订阅数'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/label/subscribe_count/total';
+
+
+ drop table IF EXISTS app_stay_duration;
+create table IF NOT EXISTS app_stay_duration(
+     t_date STRING COMMENT '日期',
+     parent_column_Id string COMMENT '专区ID',
+     user_count INT COMMENT '用户数',
+     stay_duration BIGINT COMMENT '停留时长'
+)COMMENT '累计专区停留用户数和时长'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/stay_duration/total';
+
+drop table IF EXISTS app_stay_duration_day;
+create table IF NOT EXISTS app_stay_duration_day(
+     t_date STRING COMMENT '日期',
+     parent_column_Id string COMMENT '专区ID',
+     user_count INT COMMENT '用户数',
+     stay_duration BIGINT COMMENT '停留时长'
+)COMMENT '专区按日停留用户数和时长'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/stay_duration/day';
+
+drop table IF EXISTS app_stay_duration_week;
+create table IF NOT EXISTS app_stay_duration_week(
+     y INT COMMENT '年份',
+     w INT COMMENT '周',
+     parent_column_Id string COMMENT '专区ID',
+     user_count INT COMMENT '用户数',
+     stay_duration BIGINT COMMENT '停留时长'
+)COMMENT '专区按周停留用户数和时长'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/stay_duration/week';
+
+ drop table IF EXISTS app_column_stay_duration;
+create table IF NOT EXISTS app_column_stay_duration(
+     t_date STRING COMMENT '日期',
+     parent_column_Id string COMMENT '专区ID',
+     before_column_id STRING COMMENT '栏目ID',
+     before_column_code STRING COMMENT '栏目CODE',
+     before_column_name STRING COMMENT '栏目CODE',
+     user_count INT COMMENT '用户数',
+     stay_duration BIGINT COMMENT '停留时长'
+)COMMENT '专区栏目累计停留用户和时长'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/column_stay_duration/total';
+
+drop table IF EXISTS app_column_stay_duration_day;
+create table IF NOT EXISTS app_column_stay_duration_day(
+     t_date STRING COMMENT '日期',
+     parent_column_Id string COMMENT '专区ID',
+     before_column_id STRING COMMENT '栏目ID',
+     before_column_code STRING COMMENT '栏目CODE',
+     before_column_name STRING COMMENT '栏目CODE',
+     user_count INT COMMENT '用户数',
+     stay_duration BIGINT COMMENT '停留时长'
+)COMMENT '专区栏目按日停留用户和时长'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/column_stay_duration/day';
+
+drop table IF EXISTS app_column_stay_duration_week;
+create table IF NOT EXISTS app_column_stay_duration_week(
+     y INT COMMENT '年份',
+     w INT COMMENT '周',
+     parent_column_Id string COMMENT '专区ID',
+     before_column_id STRING COMMENT '栏目ID',
+     before_column_code STRING COMMENT '栏目CODE',
+     before_column_name STRING COMMENT '栏目CODE',
+     user_count INT COMMENT '用户数',
+     stay_duration BIGINT COMMENT '停留时长'
+)COMMENT '专区栏目按周停留用户和时长'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/column_stay_duration/week';
+
+
+drop table IF EXISTS app_inlet_position_count_day;
+create table IF NOT EXISTS app_inlet_position_count_day(
+     t_date STRING COMMENT '日期',
+     user_type STRING COMMENT '用户类型',
+     events_type STRING COMMENT '事件类型',
+     parent_column_Id string COMMENT '专区ID',
+     spm STRING COMMENT '来源Spm',
+     content_name STRING COMMENT '内容名称',
+     user_count INT COMMENT '用户数',
+     visit_count BIGINT COMMENT '点击次数'
+)COMMENT '用户来源统计'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/inlet_position/day';
+
+drop table IF EXISTS app_inlet_position_count_week;
+create table IF NOT EXISTS app_inlet_position_count_week(
+     y STRING COMMENT '年份',
+     w STRING COMMENT '周',
+     user_type STRING COMMENT '用户类型',
+     events_type STRING COMMENT '事件类型',
+     parent_column_Id string COMMENT '专区ID',
+     spm STRING COMMENT '来源Spm',
+     content_name STRING COMMENT '内容名称',
+     user_count INT COMMENT '用户数',
+     visit_count BIGINT COMMENT '点击次数'
+)COMMENT '用户来源统计'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/inlet_position/week';
+
+drop table IF EXISTS app_inlet_count_day;
+create table IF NOT EXISTS app_inlet_count_day(
+     t_date STRING COMMENT '日期',
+     user_type STRING COMMENT '用户类型',
+     parent_column_Id string COMMENT '专区ID',
+     user_count INT COMMENT '用户数',
+     visit_count BIGINT COMMENT '点击次数'
+)COMMENT '用户来源统计'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/inlet/day';
+
+drop table IF EXISTS app_inlet_count_week;
+create table IF NOT EXISTS app_inlet_count_week(
+     y STRING COMMENT '年份',
+     w STRING COMMENT '周',
+     user_type STRING COMMENT '用户类型',
+     parent_column_Id string COMMENT '专区ID',
+     user_count INT COMMENT '用户数',
+     visit_count BIGINT COMMENT '点击次数'
+)COMMENT '用户来源统计'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/inlet/week';
+
+
+ drop table IF EXISTS app_album_user_count_rank_day;
+create table IF NOT EXISTS app_album_user_count_rank_day(
+     t_date STRING COMMENT '日期',
+     parent_column_Id string COMMENT '专区ID',
+     album_id INT COMMENT '专辑ID',
+     album_name string COMMENT '专辑名称',
+     content_type INT COMMENT '专辑类型',
+     content_type_name string COMMENT '类型名称',
+     user_count BIGINT COMMENT '用户数',
+     rank INT COMMENT '排名'
+)COMMENT '专辑播放用户数日排行榜'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/rank/play_album/user_count/day';
+
+drop table IF EXISTS app_album_play_count_rank_day;
+create table IF NOT EXISTS app_album_play_count_rank_day(
+     t_date STRING COMMENT '日期',
+     parent_column_Id string COMMENT '专区ID',
+     album_id INT COMMENT '专辑ID',
+     album_name string COMMENT '专辑名称',
+     content_type INT COMMENT '专辑类型',
+     content_type_name string COMMENT '类型名称',
+     play_count BIGINT COMMENT '播放次数',
+     rank INT COMMENT '排名'
+)COMMENT '专辑播放次数日排行榜'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/rank/play_album/play_count/day';
+
+ drop table IF EXISTS app_album_user_count_rank_week;
+create table IF NOT EXISTS app_album_user_count_rank_week(
+     y STRING COMMENT '年份',
+     w STRING COMMENT '周',
+     parent_column_Id string COMMENT '专区ID',
+     album_id INT COMMENT '专辑ID',
+     album_name string COMMENT '专辑名称',
+     content_type INT COMMENT '专辑类型',
+     content_type_name string COMMENT '类型名称',
+     user_count BIGINT COMMENT '用户数',
+     rank INT COMMENT '排名'
+)COMMENT '专辑播放用户数周排行榜'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/rank/play_album/user_count/week';
+
+drop table IF EXISTS app_album_play_count_rank_week;
+create table IF NOT EXISTS app_album_play_count_rank_week(
+     y STRING COMMENT '年份',
+     w STRING COMMENT '周',
+     parent_column_Id string COMMENT '专区ID',
+     album_id INT COMMENT '专辑ID',
+     album_name string COMMENT '专辑名称',
+     content_type INT COMMENT '专辑类型',
+     content_type_name string COMMENT '类型名称',
+     play_count BIGINT COMMENT '播放次数',
+     rank INT COMMENT '排名'
+)COMMENT '专辑播放次数周排行榜'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/rank/play_album/play_count/week';
+
+drop table IF EXISTS app_video_user_count_rank_day;
+create table IF NOT EXISTS app_video_user_count_rank_day(
+     t_date STRING COMMENT '日期',
+     parent_column_Id string COMMENT '专区ID',
+     album_id INT COMMENT '专辑ID',
+     album_name string COMMENT '专辑名称',
+     content_type INT COMMENT '专辑类型',
+     content_type_name string COMMENT '类型名称',
+     video_id INT COMMENT '剧集ID',
+     video_name string COMMENT '剧集名称',
+     user_count BIGINT COMMENT '用户数',
+     rank INT COMMENT '排名'
+)COMMENT '剧集播放用户数日排行榜'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/rank/play_video/user_count/day';
+
+drop table IF EXISTS app_video_play_count_rank_day;
+create table IF NOT EXISTS app_video_play_count_rank_day(
+     t_date STRING COMMENT '日期',
+     parent_column_Id string COMMENT '专区ID',
+     album_id INT COMMENT '专辑ID',
+     album_name string COMMENT '专辑名称',
+     content_type INT COMMENT '专辑类型',
+     content_type_name string COMMENT '类型名称',
+     video_id INT COMMENT '剧集ID',
+     video_name string COMMENT '剧集名称',
+     play_count BIGINT COMMENT '播放次数',
+     rank INT COMMENT '排名'
+)COMMENT '专辑播放次数日排行榜'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/rank/play_video/play_count/day';
+
+ drop table IF EXISTS app_video_user_count_rank_week;
+create table IF NOT EXISTS app_video_user_count_rank_week(
+     y STRING COMMENT '年份',
+     w STRING COMMENT '周',
+     parent_column_Id string COMMENT '专区ID',
+     album_id INT COMMENT '专辑ID',
+     album_name string COMMENT '专辑名称',
+     content_type INT COMMENT '专辑类型',
+     content_type_name string COMMENT '类型名称',
+     video_id INT COMMENT '剧集ID',
+     video_name string COMMENT '剧集名称',
+     user_count BIGINT COMMENT '用户数',
+     rank INT COMMENT '排名'
+)COMMENT '专辑播放用户数周排行榜'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/rank/play_video/user_count/week';
+
+drop table IF EXISTS app_video_play_count_rank_week;
+create table IF NOT EXISTS app_video_play_count_rank_week(
+     y STRING COMMENT '年份',
+     w STRING COMMENT '周',
+     parent_column_Id string COMMENT '专区ID',
+     album_id INT COMMENT '专辑ID',
+     album_name string COMMENT '专辑名称',
+     content_type INT COMMENT '专辑类型',
+     content_type_name string COMMENT '类型名称',
+     video_id INT COMMENT '剧集ID',
+     video_name string COMMENT '剧集名称',
+     play_count BIGINT COMMENT '播放次数',
+     rank INT COMMENT '排名'
+)COMMENT '专辑播放次数周排行榜'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/rank/play_video/play_count/week';
+
+ drop table IF EXISTS area_update_to_user;
+create table IF NOT EXISTS area_update_to_user(
+     user_type string,
+     user_id string,
+     area_code string
+)COMMENT '更新用户区域信息'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/noapp/update_area_to_user';
+
+
+drop table IF EXISTS app_album_content_type_day;
+create table IF NOT EXISTS app_album_content_type_day(
+     t_date STRING COMMENT '日期',
+     user_type STRING COMMENT '用户类型',
+     parent_column_Id string COMMENT '专区ID',
+     content_type STRING COMMENT '专辑类型',
+     content_type_name STRING COMMENT '专辑类型名称',
+     user_count INT COMMENT '用户数',
+     play_count BIGINT COMMENT '播放次数',
+     duration BIGINT COMMENT '播放时长'
+)COMMENT '用户来源统计'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/play_album/content_type/day';
+
+
+ drop table IF EXISTS app_album_content_type_week;
+create table IF NOT EXISTS app_album_content_type_week(
+     y STRING COMMENT '年',
+     w STRING COMMENT '周',
+     user_type STRING COMMENT '用户类型',
+     parent_column_Id string COMMENT '专区ID',
+     content_type STRING COMMENT '专辑类型',
+     content_type_name STRING COMMENT '专辑类型名称',
+     user_count INT COMMENT '用户数',
+     play_count BIGINT COMMENT '播放次数',
+     duration BIGINT COMMENT '播放时长'
+)COMMENT '用户来源统计'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/play_album/content_type/week';
+
+ drop table IF EXISTS app_album_content_type_month;
+create table IF NOT EXISTS app_album_content_type_month(
+     y STRING COMMENT '年',
+     m STRING COMMENT '月',
+     user_type STRING COMMENT '用户类型',
+     parent_column_Id string COMMENT '专区ID',
+     content_type STRING COMMENT '专辑类型',
+     content_type_name STRING COMMENT '专辑类型名称',
+     user_count INT COMMENT '用户数',
+     play_count BIGINT COMMENT '播放次数',
+     duration BIGINT COMMENT '播放时长'
+)COMMENT '用户来源统计'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/play_album/content_type/month';
+
+ drop table IF EXISTS online_order_count_day;
+create table IF NOT EXISTS online_order_count_day(
+     t_date string,
+     user_type string,
+     third_product_code string,
+     user_count int,
+     order_count int COMMENT '订购次数'
+)
+COMMENT '订购按日统计'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ COLLECTION ITEMS TERMINATED BY ','
+ MAP KEYS TERMINATED BY ':'
+ stored as textfile
+ location '/${hive.province}/hive/reports/online_order/count/day';
+
+ drop table IF EXISTS online_order_count_week;
+create table IF NOT EXISTS online_order_count_week(
+     y string,
+     w string,
+     user_type string,
+     third_product_code string,
+     user_count int,
+     order_count int COMMENT '订购次数'
+)
+COMMENT '订购按周统计'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ COLLECTION ITEMS TERMINATED BY ','
+ MAP KEYS TERMINATED BY ':'
+ stored as textfile
+ location '/${hive.province}/hive/reports/online_order/count/week';
+
+
+drop table IF EXISTS online_order_count_month;
+create table IF NOT EXISTS online_order_count_month(
+     y string,
+     m string,
+     user_type string,
+     third_product_code string,
+     user_count int,
+     order_count int COMMENT '订购次数'
+)
+COMMENT '订购按月统计'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ COLLECTION ITEMS TERMINATED BY ','
+ MAP KEYS TERMINATED BY ':'
+ stored as textfile
+ location '/${hive.province}/hive/reports/online_order/count/month';
+
+
+drop table IF EXISTS area_online_order_count_day;
+create table IF NOT EXISTS area_online_order_count_day(
+     t_date string,
+     user_type string,
+     area_code string,
+     product_id int,
+     product_name string,
+     product_type int,
+     third_product_code string,
+     present_price double,
+     user_count int,
+     order_count int COMMENT '订购次数',
+     amount double comment '金额'
+
+)
+COMMENT '区域订购按日统计'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ COLLECTION ITEMS TERMINATED BY ','
+ MAP KEYS TERMINATED BY ':'
+ stored as textfile
+ location '/${hive.province}/hive/reports/area_online_order/count/day';
+
+
+
+drop table IF EXISTS area_online_order_count_week;
+create table IF NOT EXISTS area_online_order_count_week(
+     y string,
+     w string,
+     user_type string,
+     area_code string,
+     product_id int,
+     product_name string,
+     product_type int,
+     third_product_code string,
+     present_price double,
+     user_count int,
+     order_count int COMMENT '订购次数',
+     amount double comment '金额'
+
+)
+COMMENT '区域订购按周统计'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ COLLECTION ITEMS TERMINATED BY ','
+ MAP KEYS TERMINATED BY ':'
+ stored as textfile
+ location '/${hive.province}/hive/reports/area_online_order/count/week';
+
+
+ drop table IF EXISTS area_online_order_count_month;
+create table IF NOT EXISTS area_online_order_count_month(
+     y string,
+     m string,
+     user_type string,
+     area_code string,
+     product_id int,
+     product_name string,
+     product_type int,
+     third_product_code string,
+     present_price double,
+     user_count int,
+     order_count int COMMENT '订购次数',
+     amount double comment '金额'
+
+)
+COMMENT '区域订购按月统计'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ COLLECTION ITEMS TERMINATED BY ','
+ MAP KEYS TERMINATED BY ':'
+ stored as textfile
+ location '/${hive.province}/hive/reports/area_online_order/count/month';
+
+
+ drop table IF EXISTS app_draw_prize_count_day;
+create table IF NOT EXISTS app_draw_prize_count_day(
+     t_date string,
+     user_type string,
+     parent_column_id int,
+     draw_user_count int comment '抽奖用户数',
+     draw_count int comment '抽奖次数',
+     drawed_user_count int comment '中奖用户数',
+     drawed_count int comment '中奖次数'
+)
+COMMENT '专区抽奖按日统计'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ COLLECTION ITEMS TERMINATED BY ','
+ MAP KEYS TERMINATED BY ':'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/draw_prize/count/day';
+
+drop table IF EXISTS app_draw_prize_count_week;
+create table IF NOT EXISTS app_draw_prize_count_week(
+     y string,
+     w string,
+     user_type string,
+     parent_column_id int,
+     draw_user_count int comment '抽奖用户数',
+     draw_count int comment '抽奖次数',
+     drawed_user_count int comment '中奖用户数',
+     drawed_count int comment '中奖次数'
+)
+COMMENT '专区抽奖按周统计'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ COLLECTION ITEMS TERMINATED BY ','
+ MAP KEYS TERMINATED BY ':'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/draw_prize/count/week';
+
+
+ drop table IF EXISTS app_draw_prize_count_month;
+create table IF NOT EXISTS app_draw_prize_count_month(
+     y string,
+     m string,
+     user_type string,
+     parent_column_id int,
+     draw_user_count int comment '抽奖用户数',
+     draw_count int comment '抽奖次数',
+     drawed_user_count int comment '中奖用户数',
+     drawed_count int comment '中奖次数'
+)
+COMMENT '专区抽奖按月统计'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ COLLECTION ITEMS TERMINATED BY ','
+ MAP KEYS TERMINATED BY ':'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/draw_prize/count/month';
+
+
+drop table IF EXISTS app_prize_detail_count_day;
+create table IF NOT EXISTS app_prize_detail_count_day(
+     t_date string,
+     user_type string,
+     parent_column_id int,
+     prize_id int comment '奖品ID',
+     prize_name int comment '奖品名称',
+     drawed_user_count int comment '中奖用户数',
+     drawed_count int comment '中奖次数'
+)
+COMMENT '专区抽奖按日统计'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ COLLECTION ITEMS TERMINATED BY ','
+ MAP KEYS TERMINATED BY ':'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/prize_detail/count/day';
+
+drop table IF EXISTS app_prize_detail_count_week;
+create table IF NOT EXISTS app_prize_detail_count_week(
+     y string,
+     w string,
+     user_type string,
+     parent_column_id int,
+     prize_id int comment '奖品ID',
+     prize_name int comment '奖品名称',
+     drawed_user_count int comment '中奖用户数',
+     drawed_count int comment '中奖次数'
+)
+COMMENT '专区抽奖按周统计'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ COLLECTION ITEMS TERMINATED BY ','
+ MAP KEYS TERMINATED BY ':'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/prize_detail/count/week';
+
+
+ drop table IF EXISTS app_prize_detail_count_month;
+create table IF NOT EXISTS app_prize_detail_count_month(
+     y string,
+     m string,
+     user_type string,
+     parent_column_id int,
+     prize_id int comment '奖品ID',
+     prize_name int comment '奖品名称',
+     drawed_user_count int comment '中奖用户数',
+     drawed_count int comment '中奖次数'
+)
+COMMENT '专区抽奖按月统计'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ COLLECTION ITEMS TERMINATED BY ','
+ MAP KEYS TERMINATED BY ':'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/prize_detail/count/month';
+
+
+--非专区留存用户数
+drop table IF EXISTS noapp_retention_count_day;
+create table IF NOT EXISTS noapp_retention_count_day(
+     t_date string comment '日期',
+     user_type string COMMENT '用户类型',
+     user_count INT COMMENT '访问用户数'
+)
+ COMMENT '留存用户数'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/noapp/retention/user/day';
+
+
+
+drop table IF EXISTS app_content_type_album_user_count_rank_day;
+create table IF NOT EXISTS app_content_type_album_user_count_rank_day(
+     t_date STRING COMMENT '日期',
+     parent_column_Id string COMMENT '专区ID',
+     content_type INT COMMENT '专辑类型',
+     content_type_name string COMMENT '类型名称',
+     album_id INT COMMENT '专辑ID',
+     album_name string COMMENT '专辑名称',
+     user_count BIGINT COMMENT '用户数',
+     rank INT COMMENT '排名'
+)COMMENT '类型下专辑播放用户数日排行榜'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/rank/play_content_type_album/user_count/day';
+
+drop table IF EXISTS app_content_type_album_play_count_rank_day;
+create table IF NOT EXISTS app_content_type_album_play_count_rank_day(
+     t_date STRING COMMENT '日期',
+     parent_column_Id string COMMENT '专区ID',
+     content_type INT COMMENT '专辑类型',
+     content_type_name string COMMENT '类型名称',
+     album_id INT COMMENT '专辑ID',
+     album_name string COMMENT '专辑名称',
+     play_count BIGINT COMMENT '播放次数',
+     rank INT COMMENT '排名'
+)COMMENT '类型下专辑播放次数日排行榜'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/rank/play_content_type_album/play_count/day';
+
+ drop table IF EXISTS app_content_type_album_user_count_rank_week;
+create table IF NOT EXISTS app_content_type_album_user_count_rank_week(
+     y STRING COMMENT '年份',
+     w STRING COMMENT '周',
+     parent_column_Id string COMMENT '专区ID',
+     content_type INT COMMENT '专辑类型',
+     content_type_name string COMMENT '类型名称',
+     album_id INT COMMENT '专辑ID',
+     album_name string COMMENT '专辑名称',
+     user_count BIGINT COMMENT '用户数',
+     rank INT COMMENT '排名'
+)COMMENT '类型下专辑播放用户数周排行榜'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/rank/play_content_type_album/user_count/week';
+
+drop table IF EXISTS app_content_type_album_play_count_rank_week;
+create table IF NOT EXISTS app_content_type_album_play_count_rank_week(
+     y STRING COMMENT '年份',
+     w STRING COMMENT '周',
+     parent_column_Id string COMMENT '专区ID',
+     content_type INT COMMENT '专辑类型',
+     content_type_name string COMMENT '类型名称',
+     album_id INT COMMENT '专辑ID',
+     album_name string COMMENT '专辑名称',
+     play_count BIGINT COMMENT '播放次数',
+     rank INT COMMENT '排名'
+)COMMENT '类型下专辑播放次数周排行榜'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/rank/play_content_type_album/play_count/week';
+
+
+
+ drop table IF EXISTS app_content_type_album_user_count_rank_month;
+create table IF NOT EXISTS app_content_type_album_user_count_rank_month(
+     y STRING COMMENT '年份',
+     m STRING COMMENT '月份',
+     parent_column_Id string COMMENT '专区ID',
+     content_type INT COMMENT '专辑类型',
+     content_type_name string COMMENT '类型名称',
+     album_id INT COMMENT '专辑ID',
+     album_name string COMMENT '专辑名称',
+     user_count BIGINT COMMENT '用户数',
+     rank INT COMMENT '排名'
+)COMMENT '类型下专辑播放用户数月排行榜'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/rank/play_content_type_album/user_count/month';
+
+drop table IF EXISTS app_content_type_album_play_count_rank_month;
+create table IF NOT EXISTS app_content_type_album_play_count_rank_month(
+     y STRING COMMENT '年份',
+     m STRING COMMENT '月份',
+     parent_column_Id string COMMENT '专区ID',
+     content_type INT COMMENT '专辑类型',
+     content_type_name string COMMENT '类型名称',
+     album_id INT COMMENT '专辑ID',
+     album_name string COMMENT '专辑名称',
+     play_count BIGINT COMMENT '播放次数',
+     rank INT COMMENT '排名'
+)COMMENT '类型下专辑播放次数月排行榜'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/rank/play_content_type_album/play_count/month';
+
+
+
+ drop table IF EXISTS noapp_content_type_album_user_count_rank_day;
+create table IF NOT EXISTS noapp_content_type_album_user_count_rank_day(
+     t_date STRING COMMENT '日期',
+     content_type INT COMMENT '专辑类型',
+     content_type_name string COMMENT '类型名称',
+     album_id INT COMMENT '专辑ID',
+     album_name string COMMENT '专辑名称',
+     user_count BIGINT COMMENT '用户数',
+     rank INT COMMENT '排名'
+)COMMENT '类型下专辑播放用户数日排行榜'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/noapp/rank/play_content_type_album/user_count/day';
+
+drop table IF EXISTS noapp_content_type_album_play_count_rank_day;
+create table IF NOT EXISTS noapp_content_type_album_play_count_rank_day(
+     t_date STRING COMMENT '日期',
+     content_type INT COMMENT '专辑类型',
+     content_type_name string COMMENT '类型名称',
+     album_id INT COMMENT '专辑ID',
+     album_name string COMMENT '专辑名称',
+     play_count BIGINT COMMENT '播放次数',
+     rank INT COMMENT '排名'
+)COMMENT '类型下专辑播放次数日排行榜'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/noapp/rank/play_content_type_album/play_count/day';
+
+ drop table IF EXISTS noapp_album_user_count_rank_day;
+create table IF NOT EXISTS noapp_album_user_count_rank_day(
+     t_date STRING COMMENT '日期',
+     album_id INT COMMENT '专辑ID',
+     album_name string COMMENT '专辑名称',
+     content_type INT COMMENT '专辑类型',
+     content_type_name string COMMENT '类型名称',
+     user_count BIGINT COMMENT '用户数',
+     rank INT COMMENT '排名'
+)COMMENT '类型下专辑播放用户数日排行榜'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/noapp/rank/play_album/user_count/day';
+
+ drop table IF EXISTS noapp_content_type_album_user_count_rank_week;
+create table IF NOT EXISTS noapp_content_type_album_user_count_rank_week(
+     y STRING COMMENT '年份',
+     w STRING COMMENT '周',
+     content_type INT COMMENT '专辑类型',
+     content_type_name string COMMENT '类型名称',
+     album_id INT COMMENT '专辑ID',
+     album_name string COMMENT '专辑名称',
+     user_count BIGINT COMMENT '用户数',
+     rank INT COMMENT '排名'
+)COMMENT '类型下专辑播放用户数周排行榜'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/noapp/rank/play_content_type_album/user_count/week';
+
+drop table IF EXISTS noapp_content_type_album_play_count_rank_week;
+create table IF NOT EXISTS noapp_content_type_album_play_count_rank_week(
+     y STRING COMMENT '年份',
+     w STRING COMMENT '周',
+     content_type INT COMMENT '专辑类型',
+     content_type_name string COMMENT '类型名称',
+     album_id INT COMMENT '专辑ID',
+     album_name string COMMENT '专辑名称',
+     play_count BIGINT COMMENT '播放次数',
+     rank INT COMMENT '排名'
+)COMMENT '类型下专辑播放次数周排行榜'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/noapp/rank/play_content_type_album/play_count/week';
+
+
+ drop table IF EXISTS noapp_album_user_count_rank_week;
+create table IF NOT EXISTS noapp_album_user_count_rank_week(
+     y STRING COMMENT '年份',
+     w STRING COMMENT '周',
+     album_id INT COMMENT '专辑ID',
+     album_name string COMMENT '专辑名称',
+     content_type INT COMMENT '专辑类型',
+     content_type_name string COMMENT '类型名称',
+     user_count BIGINT COMMENT '用户数',
+     rank INT COMMENT '排名'
+)COMMENT '类型下专辑播放用户数周排行榜'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/noapp/rank/play_album/user_count/week';
+
+
+
+ drop table IF EXISTS noapp_content_type_album_user_count_rank_month;
+create table IF NOT EXISTS noapp_content_type_album_user_count_rank_month(
+     y STRING COMMENT '年份',
+     m STRING COMMENT '月份',
+     content_type INT COMMENT '专辑类型',
+     content_type_name string COMMENT '类型名称',
+     album_id INT COMMENT '专辑ID',
+     album_name string COMMENT '专辑名称',
+     user_count BIGINT COMMENT '用户数',
+     rank INT COMMENT '排名'
+)COMMENT '类型下专辑播放用户数月排行榜'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/noapp/rank/play_content_type_album/user_count/month';
+
+drop table IF EXISTS noapp_content_type_album_play_count_rank_month;
+create table IF NOT EXISTS noapp_content_type_album_play_count_rank_month(
+     y STRING COMMENT '年份',
+     m STRING COMMENT '月份',
+     content_type INT COMMENT '专辑类型',
+     content_type_name string COMMENT '类型名称',
+     album_id INT COMMENT '专辑ID',
+     album_name string COMMENT '专辑名称',
+     play_count BIGINT COMMENT '播放次数',
+     rank INT COMMENT '排名'
+)COMMENT '类型下专辑播放次数月排行榜'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/noapp/rank/play_content_type_album/play_count/month';
+
+ drop table IF EXISTS noapp_album_user_count_rank_month;
+create table IF NOT EXISTS noapp_album_user_count_rank_month(
+     y STRING COMMENT '年份',
+     m STRING COMMENT '月份',
+     album_id INT COMMENT '专辑ID',
+     album_name string COMMENT '专辑名称',
+     content_type INT COMMENT '专辑类型',
+     content_type_name string COMMENT '类型名称',
+     user_count BIGINT COMMENT '用户数',
+     rank INT COMMENT '排名'
+)COMMENT '专辑播放用户数月排行榜'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/noapp/rank/play_album/user_count/month';
+
+
+  drop table IF EXISTS app_album_user_count_rank_month;
+create table IF NOT EXISTS app_album_user_count_rank_month(
+     y STRING COMMENT '年份',
+     m STRING COMMENT '月份',
+     parent_column_Id string COMMENT '专区ID',
+     album_id INT COMMENT '专辑ID',
+     album_name string COMMENT '专辑名称',
+     content_type INT COMMENT '专辑类型',
+     content_type_name string COMMENT '类型名称',
+     user_count BIGINT COMMENT '用户数',
+     rank INT COMMENT '排名'
+)COMMENT '专区专辑播放用户数月排行榜'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/rank/play_album/user_count/month';
+
+
+
+  CREATE TABLE if not exists app_online_order_detail (
+  user_type string COMMENT '用户类型',
+  parent_column_id int COMMENT '专区Id',
+  order_id string COMMENT '订单ID',
+  mac string,
+  sn string,
+  user_id string COMMENT '用户ID',
+  area_code string COMMENT '区域码',
+  product_id string COMMENT '产品ID',
+  product_name string COMMENT '产品名称',
+  content_type int COMMENT '产品类型',
+  present_price double COMMENT '产品价格',
+  content_id int COMMENT '单片订购内容ID',
+  pay_type int COMMENT '支付类型',
+  third_product_code string,
+  inlet_column_id int COMMENT '入口栏目ID',
+  inlet_column_code string COMMENT '入口栏目Code',
+  inlet_column_name string COMMENT '入口栏目名称',
+  inlet_ablum_id int COMMENT '入口专辑ID',
+  inlet_album_name string COMMENT '入口专辑名称',
+  create_time string COMMENT '时间'
+) COMMENT '订购详情'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ COLLECTION ITEMS TERMINATED BY ','
+ MAP KEYS TERMINATED BY ':'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/online_order/detail';
+
+
+  drop table IF EXISTS app_detail_page_album_content_type_count_day;
+create table IF NOT EXISTS app_detail_page_album_content_type_count_day(
+     t_date STRING COMMENT '日期',
+     parent_column_Id string COMMENT '专区ID',
+     user_type string COMMENT '用户类型',
+     content_type string comment '专辑类型',
+     content_type_name string comment '类型名称',
+     user_count INT COMMENT '用户数',
+     visit_count INT COMMENT '浏览数'
+)COMMENT '专区详情页日访问用户数'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/detail_page_album_content_type/count/day';
+
+drop table IF EXISTS app_detail_page_album_content_type_count_week;
+create table IF NOT EXISTS app_detail_page_album_content_type_count_week(
+     y INT COMMENT '年份',
+     w INT COMMENT '周',
+     parent_column_Id string COMMENT '专区ID',
+     user_type string COMMENT '用户类型',
+     content_type string comment '专辑类型',
+     content_type_name string comment '类型名称',
+     user_count INT COMMENT '用户数',
+     visit_count INT COMMENT '浏览数'
+)COMMENT '专区详情页周访问用户数'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/detail_page_album_content_type/count/week';
+
+
+ drop table IF EXISTS app_inlet_position_subject_album_count_day;
+create table IF NOT EXISTS app_inlet_position_subject_album_count_day(
+     t_date STRING COMMENT '日期',
+     user_type STRING COMMENT '用户类型',
+     events_type STRING COMMENT '事件类型',
+     parent_column_Id string COMMENT '专区ID',
+     after_spm STRING COMMENT '来源Spm',
+     subject_name STRING COMMENT '专题名称',
+     album_id int comment '专辑ID',
+     album_name STRING comment '专辑ID',
+     content_type int comment '专辑ID',
+     content_type_name STRING comment '专辑ID',
+     user_count INT COMMENT '用户数',
+     visit_count BIGINT COMMENT '点击次数'
+)COMMENT '云广首页推荐专题详情页访问次数'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/inlet_position_subject_album/day';
+
+drop table IF EXISTS app_inlet_position_subject_album_count_week;
+create table IF NOT EXISTS app_inlet_position_subject_album_count_week(
+     y STRING COMMENT '年份',
+     w STRING COMMENT '周',
+     user_type STRING COMMENT '用户类型',
+     events_type STRING COMMENT '事件类型',
+     parent_column_Id string COMMENT '专区ID',
+     after_spm STRING COMMENT '来源Spm',
+     subject_name STRING COMMENT '专题名称',
+     album_id int comment '专辑ID',
+     album_name STRING comment '专辑ID',
+     content_type int comment '专辑ID',
+     content_type_name STRING comment '专辑ID',
+     user_count INT COMMENT '用户数',
+     visit_count BIGINT COMMENT '点击次数'
+)COMMENT '云广首页推荐专题详情页访问次数'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/reports/app/inlet_position_subject_album/week';

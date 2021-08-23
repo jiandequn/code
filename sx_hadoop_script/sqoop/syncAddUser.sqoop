@@ -1,0 +1,10 @@
+sqoop export \
+--connect jdbc:mysql://192.168.15.50:3306/sx_hadoop?useUnicode=true \
+--username kfyw \
+--password 123456 \
+--export-dir /data/hive/user/page_add/y=%(y)s/m=%(m)s/d=%(d)s/ \
+--table user_info \
+--columns parent_column_id,user_type,user_id,area_code,create_time \
+--update-key parent_column_id,user_type,user_id \
+--update-mode allowinsert \
+-input-fields-terminated-by "\t"

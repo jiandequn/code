@@ -1,0 +1,22 @@
+sqoop eval \
+-Dmapreduce.job.queuename=${yarn_queue} \
+--connect "${mysql_url}?useUnicode=true&characterEncoding=utf-8" \
+--username ${mysql_username} \
+--password ${mysql_password} \
+--metadata-transaction-isolation-level 'TRANSACTION_REPEATABLE_READ' \
+--query "delete from noapp_content_type_album_duration_rank_day where t_date>='${startDate}' and t_date<'${endDate}'"
+
+sqoop export \
+-Dmapreduce.job.queuename=${yarn_queue} \
+--connect "${mysql_url}?useUnicode=true&characterEncoding=utf-8" \
+--username ${mysql_username} \
+--password ${mysql_password} \
+--export-dir /${hive_province}/hive/reports/noapp/rank/play_content_type_album/duration/day/ \
+--table noapp_content_type_album_duration_rank_day \
+--columns t_date,user_type,content_type,content_type_name,album_id,album_name,duration,rank,user_count,play_count \
+--update-key t_date,user_type,content_type,album_id \
+--update-mode allowinsert \
+--input-null-string '\\N'  \
+--input-null-non-string '\\N' \
+--input-fields-terminated-by '\t' \
+--outdir ${sqoop_outdir}/mr_java

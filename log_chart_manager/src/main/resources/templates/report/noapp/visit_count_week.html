@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head th:include="layout :: htmlhead" th:with="title='区域新增用户占比'"></head>
+<form id="searchForm" class="layui-form layui-form-pane" method="post" action="" style="margin-top: 20px;">
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">用户类型</label>
+            <div class="layui-input-inline">
+                <select id="userType" name="userType" lay-verify="required">
+                    <option label="OTT" th:selected="${ppfuns.userType=='OTT'}" >OTT</option>
+                    <option label="VOD" th:selected="${ppfuns.userType=='VOD'}">VOD</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">时间</label>
+            <div class="layui-input-inline" style="width: 100px;">
+                <input name="startDate" id="insertTimeStart" placeholder="yyyy-MM-dd" autocomplete="off"
+                       class="layui-input" type="text"/>
+            </div>
+            <div class="layui-form-mid">-</div>
+            <div class="layui-input-inline" style="width: 100px;">
+                <input name="endDate" id="insertTimeEnd" placeholder="yyyy-MM-dd" autocomplete="off"
+                       class="layui-input" type="text"/>
+            </div>
+        </div>
+        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        <button id="searchSubmit" class="layui-btn" lay-submit="" lay-filter="searchSubmit">查询</button>
+        <button class="layui-btn layui-icon-export" lay-submit="" lay-filter="download">下载Excel</button>
+    </div>
+</form>
+<hr class="layui-bg-black"/>
+<div class="layui-tab layui-tab-card" lay-filter="reportTab">
+    <ul class="layui-tab-title">
+        <li class="layui-this">表格</li>
+        <li>柱图表</li>
+    </ul>
+    <div class="layui-tab-content" style="height: 100px;">
+        <div class="layui-tab-item layui-show">
+            <table id="reportList" lay-filter="reportTable"></table>
+        </div>
+        <div class="layui-tab-item">
+            <div id="container" style="min-width:400px;min-height:600px"></div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript" th:src="@{/js/report/common.js}"></script>
+<script type="text/javascript" th:src="@{/highcharts/highcharts.js}"></script>
+<script th:src="@{/js/dateUtils.js}"></script>
+<script th:src="@{/highcharts/modules/exporting.js}"></script>
+<script th:src="@{/highcharts/highcharts-zh_CN.js}"></script>
+<script>
+    layuiTabId=0;
+    var tableIns;
+    var tableSort = [{field: 'y', type: 'desc'},{field: 'w', type: 'desc'}];
+    var pageCurr;
+    layui.use(['form','laydate','element'], function(){
+        var form = layui.form;
+        var laydate = layui.laydate;
+        var element = layui.element;
+        laydate.render({
+            elem: '#insertTimeStart'
+        });
+        laydate.render({
+            elem: '#insertTimeEnd'
+        });
+        form.render("select");
+        form.on('submit(searchSubmit)', function(data){
+            if(layuiTabId==0){
+                queryTablePageByOrderby(tableIns,data,pageCurr,tableSort)
+            }else{
+                chartFunc()
+            }
+
+            return false;
+        });
+        form.on('submit(download)', function(data){
+            downLoadFile("chart/export","周访问数",data.field)
+            return false;
+        });
+        element.on('tab(reportTab)', function(data){
+            layuiTabId=data.index;
+            $('#searchSubmit').trigger("click");
+        });
+    });
+    layui.use('table', function(){
+        var table = layui.table;
+        tableIns=table.render({
+            elem: '#reportList'
+            ,url:'noArea/list'
+            ,method: 'post' //默认：get请求
+            ,cellMinWidth: 80
+            ,page: true
+            ,toolbar: true
+            ,autoSort: false
+            ,mutlSort:true
+            ,where: {
+                userType: $('#userType').find("option:selected").val(),
+                orderby:getOrderByParams(tableIns,tableSort)
+            }
+            ,initSort: tableSort,
+            request: {
+                pageName: 'page' //页码的参数名称，默认：page
+                ,limitName: 'limit' //每页数据量的参数名，默认：limit
+            },response:{
+                statusName: 'status' //数据状态的字段名称，默认：code
+                ,statusCode: 200 //成功的状态码，默认：0
+                ,countName: 'total' //数据总数的字段名称，默认：count
+                ,dataName: 'rows' //数据列表的字段名称，默认：data
+            }
+            ,cols: [
+                [{type:'numbers'}
+                    ,{field:'y', title:'年份',sort: true}
+                    ,{field:'w', title:'周',sort: true}
+                    ,{field:'userType', title:'用户类型'}
+                    ,{field:'pageUserCount', title:'访问用户数',sort: true}
+                    ,{field:'playUserCount', title:'播放用户数',sort: true}
+                    ,{field:'playCount', title:'点播次数',sort: true}
+                    ,{field:'duration', title:'播放时长',sort: true}
+                ]
+            ]
+            ,  done: function(res, curr, count){
+                //如果是异步请求数据方式，res即为你接口返回的信息。
+                //如果是直接赋值的方式，res即为：{data: [], count: 99} data为当前页数据、count为数据总长度
+                //console.log(res);
+                //得到当前页码
+                //console.log(curr);
+                //得到数据总量
+                //console.log(count);
+                pageCurr=curr;
+            }
+        });
+        //触发排序事件
+        table.on('sort(reportTable)', function (obj) { //注：sort 是工具条事件名，test 是 table 原始容器的属性 lay-filter="对应的值"
+            tableSort=obj;//等价于this.sortCols;或者${this}[0].sortCols
+            $('#searchSubmit').trigger("click");
+        });
+    });
+    function chartFunc() {
+        $.ajax({
+            type: "GET",
+            data: $("#searchForm").serialize(),
+            url: "chart/list",
+            success: function (result) {
+//                var chart = Highcharts.chart('container', {
+//                    chart: {
+//                        type: 'column'
+//                    },
+//                    title: {
+//                        text: titleText
+//                    },
+//                    subtitle: {
+//                        text: '数据来源: 聚视互娱日志采集'
+//                    },
+//                    xAxis: {
+//                        categories: result.categories,
+//                        crosshair: true
+//                    },
+//                    yAxis: {
+//                        min: 0,
+//                        title: {
+//                            text: '周访问用户数'
+//                        }
+//                    },
+//                    tooltip: {
+//                        // head + 每个 point + footer 拼接成完整的 table
+//                        headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+//                        pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+//                        '<td style="padding:0"><b>{point.y:.1f} 户</b></td></tr>',
+//                        footerFormat: '</table>',
+//                        shared: true,
+//                        useHTML: true
+//                    },
+//                    plotOptions: {
+//                        column: {
+//                            borderWidth: 0
+//                        }
+//                    },
+//                    series: result.series
+//                });
+
+                var chart = Highcharts.chart('container', {
+                    chart: {
+                        zoomType: 'xy'
+                    },
+                    title: {
+                        text: "周新访问用户数据(不分专区)"
+                    },
+                    subtitle: {
+                        text: '数据来源: 聚视互娱日志采集'
+                    },
+                    xAxis: [{
+                        categories:result.categories,
+                        crosshair: true
+                    }],
+                    yAxis: [{ // Primary yAxis
+                        labels: {
+                            format: '{value}',
+                            style: {
+                                color: Highcharts.getOptions().colors[2]
+                            }
+                        },
+                        title: {
+                            text: '用户数',
+                            style: {
+                                color: Highcharts.getOptions().colors[2]
+                            }
+                        },
+                        opposite: true
+                    }, { // Secondary yAxis
+                        gridLineWidth: 0,
+                        title: {
+                            text: '点播次数',
+                            style: {
+                                color: Highcharts.getOptions().colors[0]
+                            }
+                        },
+                        labels: {
+                            format: '{value}',
+                            style: {
+                                color: Highcharts.getOptions().colors[0]
+                            }
+                        }
+                    }, { // Tertiary yAxis
+                        gridLineWidth: 0,
+                        title: {
+                            text: '播放时长',
+                            style: {
+                                color: Highcharts.getOptions().colors[1]
+                            }
+                        },
+                        labels: {
+                            format: '{value} 小时',
+                            style: {
+                                color: Highcharts.getOptions().colors[1]
+                            }
+                        },
+                        opposite: true
+                    }],
+                    tooltip: {
+                        shared: true
+                    },
+                    legend: {
+                        layout: 'vertical',
+                        align: 'left',
+                        x: 80,
+                        verticalAlign: 'top',
+                        y: 55,
+                        floating: true,
+                        backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF'
+                    },
+                    series: [{
+                        name: '用户数',
+                        type: 'column',
+                        yAxis: 1,
+                        data: result.series[0].data,
+                        tooltip: {
+                            valueSuffix: ' 人'
+                        }
+                    },{
+                        name: '播放用户数',
+                        type: 'column',
+                        yAxis: 1,
+                        data: result.series[1].data,
+                        tooltip: {
+                            valueSuffix: ' 人'
+                        }
+                    }, {
+                        name: '点播次数',
+                        type: 'spline',
+                        yAxis: 2,
+                        data: result.series[2].data,
+                        marker: {
+                            enabled: false
+                        },
+                        dashStyle: 'shortdot',
+                        tooltip: {
+                            valueSuffix: ' 次'
+                        }
+                    }, {
+                        name: '播放时长',
+                        type: 'spline',
+                        data: result.series[3].data,
+                        tooltip: {
+                            valueSuffix: ' 时'
+                        }
+                    }]
+                });
+            }
+        });
+    }
+</script>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html  xmlns:th="http://www.thymeleaf.org">
+<body>
+<footer th:fragment="footer">
+    <!-- 修改密码 -->
+    <div id="useDetail" class="layer_self_wrap" style="left:300px;width:auto;display:none;">
+        <form id="useDetailForm" class="layui-form layui-form-pane" method="post" action="" style="margin-top: 20px;">
+            <div class="layui-form-item">
+                <label class="layui-form-label">登录名称</label>
+                <div class="layui-input-inline">
+                    <input id="sysUsername" name="username" lay-verify="required" autocomplete="off" class="layui-input" type="text" disabled="disabled"/>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">真实姓名</label>
+                <div class="layui-input-inline">
+                    <input id="sysRealName" name="realName" lay-verify="required" autocomplete="off" class="layui-input" type="text"/>
+                </div>
+            </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">手机号</label>
+                    <div class="layui-input-inline">
+                        <input id="telephone" name="telephone" lay-verify="required" autocomplete="off" class="layui-input" type="text" onkeyup="this.value=this.value.replace(/\D/g,'')"
+                               onafterpaste="this.value=this.value.replace(/\D/g,'')"/>
+                    </div>
+                </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">邮箱</label>
+                <div class="layui-input-inline">
+                    <input id="sysEmail" name="email" lay-verify="required" autocomplete="off" class="layui-input" type="text"/>
+                </div>
+            </div>
+                <div class="layui-form-item">
+                    <div class="layui-input-block">
+                        <button id="updatePwdBtn" class="layui-btn layui-btn-primary" lay-submit="" lay-filter="updateSysUser">确定</button>
+                    </div>
+                </div>
+        </form>
+    </div>
+
+    <div id="pwdDiv" class="layer_self_wrap" style="width:450px;display:none;">
+        <form id="setPwdForm" class="layui-form layui-form-pane" method="post" action="" style="margin-top: 20px;">
+            <div class="layui-form-item">
+                <label class="layui-form-label">旧密码</label>
+                <div class="layui-input-inline">
+                    <input id="pwdFlag" value="0" type="hidden">
+                    <input id="oldPwd" name="oldPwd" lay-filter="oldPwd" lay-verify="required" autocomplete="off" class="layui-input" type="password" onmousemove="validateOldPwd()"/>
+                </div>
+                <div class="layui-form-mid layui-word-aux" id="oldPwdVidate">
+                    <!--<div class="layui-icon layui-icon-ok" style="color: #1E9FFF;"></div>-->
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">新密码</label>
+                <div class="layui-input-inline">
+                    <input id="pwd" name="pwd" lay-verify="required" autocomplete="off" class="layui-input" type="password" placeholder="密码必须由字母,数字和字符组成长度范围6-16"/>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">确认新密码</label>
+                <div class="layui-input-inline">
+                    <input id="isPwd" name="isPwd" lay-verify="required" autocomplete="off" class="layui-input" type="password" placeholder="密码必须由字母,数字和字符组成长度范围6-16"/>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button class="layui-btn" type="reset">重置</button>
+                    <button id="pwdBtn" class="layui-btn layui-btn-primary" lay-submit="" lay-filter="setPwd">确定</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div>
+        <input type="hidden" name="color" value="" id="resetBgColor-input">
+
+    </div>
+
+    <div class="layui-footer">
+        <!-- 底部固定区域 -->
+        <a href="https://blog.csdn.net/jiandequn" style="margin-left: 5%;"><font style="font-weight: bold;font-size:16px;color:#009688;">https://blog.csdn.net/jiandequn</font></a><span style="margin-left: 70%;font-weight: bold;font-size:16px;"><a href="/home">后台管理系统</a></span>
+    </div>
+    <script type="text/javascript" th:src="@{/js/updateUser.js}"></script>
+    <script type="text/javascript" th:src="@{/js/checkParam.js}"></script>
+</footer>
+</body>
+</html>

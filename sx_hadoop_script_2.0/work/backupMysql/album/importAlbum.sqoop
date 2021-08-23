@@ -1,0 +1,19 @@
+sqoop import \
+--connect '%(db_url)s' \
+--username %(db_username)s \
+--password-file  %(db_pwdfile)s \
+--query 'select album_id,album_name,content_type,labels from t_album where $CONDITIONS' \
+--driver com.mysql.jdbc.Driver \
+--fields-terminated-by '\t' \
+--delete-target-dir \
+--target-dir '/%(hive_province)s/sqoop/album_tmp' \
+--num-mappers 10 \
+--split-by 'album_id' \
+--hive-import \
+--hive-database %(hivedb)s \
+--hive-table album_tmp \
+--hive-overwrite \
+--outdir %(sqoop_outdir)s/mr_java
+
+
+

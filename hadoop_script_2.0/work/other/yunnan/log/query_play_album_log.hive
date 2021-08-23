@@ -1,0 +1,17 @@
+set hive.auto.convert.join=true;
+insert overwrite table album_play_log
+select r.parent_column_id,r.user_type,r.mac,r.sn,
+r.user_id,r.param['albumId'] as album_id,a.album_name,a.content_type,
+act.content_type_name,split(a.labels,'\\|')[1] as labels,
+r.param['videoId'] video_id,v.video_name as video_name,v.video_duration as video_duration,
+r.param['timePosition'] time_position,r.create_time create_time
+from events_type_log r
+left join product_column p on p.column_id=r.parent_column_id
+left join album a on a.album_id=r.param['albumId']
+left join album_content_type act on act.content_type=a.content_type
+left join video v on v.video_id=r.param['videoId']
+where r.events_type='COLUMN_TYPE_HISTORY_POINT' and r.param['operateType']='add' and r.create_time>='${startDate}' and r.create_time<'${endDate}';
+
+
+
+

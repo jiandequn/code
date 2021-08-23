@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ppfuns.dao.ExportTableDao" >
+    <sql id="tableInfoColumns">
+        id,table_id as tableId,file_format fileFormat,is_effective as isEffective, name,
+        query_sql querySql,create_time as createTime
+    </sql>
+    <select id="execQuery" resultType="java.util.HashMap">
+           ${querySql}
+    </select>
+    <select id="execQueryCount" resultType="java.lang.Integer">
+        ${querySql}
+    </select>
+    <select id="selectById" resultType="com.ppfuns.entity.table.ExportTableEntity">
+        SELECT <include refid="tableInfoColumns"/>  FROM export_table_info where id=#{id}
+    </select>
+    <update id="deleteById">
+        DELETE FROM export_table_info  where id=#{id}
+    </update>
+    <select id="getList" resultType="com.ppfuns.entity.table.ExportTableEntity">
+           SELECT <include refid="tableInfoColumns"/> from export_table_info WHERE 1=1
+           <if test="t != null">
+                <if test="t.tableId != null">
+                    AND table_id = #{t.tableId}
+                </if>
+           </if>
+    </select>
+    <select id="getCount" resultType="java.lang.Integer">
+          SELECT count(1) from export_table_info WHERE 1=1
+        <if test="t != null">
+            <if test="t.tableId != null">
+                AND table_id = #{t.tableId}
+            </if>
+        </if>
+    </select>
+    <update id="update">
+          UPDATE export_table_info SET
+          <if test="isEffective != null">
+              is_effective = #{isEffective},
+          </if>
+        <if test="tableId != null">
+            table_id = #{tableId},
+        </if>
+        <if test="fileFormat != null">
+            file_format = #{fileFormat},
+        </if>
+        <if test="name != null">
+            name = #{name},
+        </if>
+            query_sql = #{querySql}
+           where id=#{id}
+    </update>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO `export_table_info` ( `table_id`, `name`, `query_sql`, `file_format`, `is_effective`, `create_time`)
+         VALUES (#{tableId}, #{name}, #{querySql}, #{fileFormat}, #{isEffective}, now());
+    </insert>
+</mapper>

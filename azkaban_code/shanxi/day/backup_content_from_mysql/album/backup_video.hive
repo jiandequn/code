@@ -1,0 +1,15 @@
+set hive.exec.parallel=true; 
+insert overwrite table video
+select t.video_id,t.album_id,t.video_name,t.video_duration from video a
+inner join video_tmp t on t.video_id=a.video_id
+union all
+select  t.video_id,t.album_id,t.video_name,t.video_duration from video_tmp t
+left join video a on a.video_id=t.video_id
+where a.video_id is null
+union all
+select  t.video_id,t.album_id,t.video_name,t.video_duration from video t
+left join video_tmp a on a.video_id=t.video_id
+where a.video_id is null;
+
+
+

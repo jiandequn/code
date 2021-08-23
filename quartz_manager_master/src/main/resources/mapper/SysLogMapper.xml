@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.dao.sys.SysLogMapper" >
+  <resultMap id="BaseResultMap" type="com.example.model.sys.SysLog" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="user_id" property="userId" jdbcType="VARCHAR" />
+    <result column="user_name" property="userName" jdbcType="VARCHAR" />
+    <result column="real_name" property="realName" jdbcType="VARCHAR" />
+    <result column="broswer" property="broswer" jdbcType="VARCHAR" />
+    <result column="level" property="level" jdbcType="TINYINT" />
+    <result column="ip" property="ip" jdbcType="VARCHAR" />
+    <result column="req_uri" property="reqUri" jdbcType="VARCHAR" />
+    <result column="op_type" property="opType" jdbcType="TINYINT" />
+    <result column="op_time" property="opTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <resultMap id="ResultMapWithBLOBs" type="com.example.model.sys.SysLog" extends="BaseResultMap" >
+    <result column="content" property="content" jdbcType="LONGVARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, user_id, user_name, real_name, broswer, level, ip, req_uri, op_type, op_time
+  </sql>
+  <sql id="Blob_Column_List" >
+    content
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from t_sys_log
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from t_sys_log
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.example.model.sys.SysLog" >
+    insert into t_sys_log (id, user_id, user_name, 
+      real_name, broswer, level, 
+      ip, req_uri, op_type, 
+      op_time, content)
+    values (#{id,jdbcType=BIGINT}, #{userId,jdbcType=VARCHAR}, #{userName,jdbcType=VARCHAR}, 
+      #{realName,jdbcType=VARCHAR}, #{broswer,jdbcType=VARCHAR}, #{level,jdbcType=TINYINT}, 
+      #{ip,jdbcType=VARCHAR}, #{reqUri,jdbcType=VARCHAR}, #{opType,jdbcType=TINYINT}, 
+      #{opTime,jdbcType=TIMESTAMP}, #{content,jdbcType=LONGVARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.example.model.sys.SysLog" >
+    insert into t_sys_log
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="userId != null" >
+        user_id,
+      </if>
+      <if test="userName != null" >
+        user_name,
+      </if>
+      <if test="realName != null" >
+        real_name,
+      </if>
+      <if test="broswer != null" >
+        broswer,
+      </if>
+      <if test="level != null" >
+        level,
+      </if>
+      <if test="ip != null" >
+        ip,
+      </if>
+      <if test="reqUri != null" >
+        req_uri,
+      </if>
+      <if test="opType != null" >
+        op_type,
+      </if>
+      <if test="opTime != null" >
+        op_time,
+      </if>
+      <if test="content != null" >
+        content,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="userId != null" >
+        #{userId,jdbcType=VARCHAR},
+      </if>
+      <if test="userName != null" >
+        #{userName,jdbcType=VARCHAR},
+      </if>
+      <if test="realName != null" >
+        #{realName,jdbcType=VARCHAR},
+      </if>
+      <if test="broswer != null" >
+        #{broswer,jdbcType=VARCHAR},
+      </if>
+      <if test="level != null" >
+        #{level,jdbcType=TINYINT},
+      </if>
+      <if test="ip != null" >
+        #{ip,jdbcType=VARCHAR},
+      </if>
+      <if test="reqUri != null" >
+        #{reqUri,jdbcType=VARCHAR},
+      </if>
+      <if test="opType != null" >
+        #{opType,jdbcType=TINYINT},
+      </if>
+      <if test="opTime != null" >
+        #{opTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="content != null" >
+        #{content,jdbcType=LONGVARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.example.model.sys.SysLog" >
+    update t_sys_log
+    <set >
+      <if test="userId != null" >
+        user_id = #{userId,jdbcType=VARCHAR},
+      </if>
+      <if test="userName != null" >
+        user_name = #{userName,jdbcType=VARCHAR},
+      </if>
+      <if test="realName != null" >
+        real_name = #{realName,jdbcType=VARCHAR},
+      </if>
+      <if test="broswer != null" >
+        broswer = #{broswer,jdbcType=VARCHAR},
+      </if>
+      <if test="level != null" >
+        level = #{level,jdbcType=TINYINT},
+      </if>
+      <if test="ip != null" >
+        ip = #{ip,jdbcType=VARCHAR},
+      </if>
+      <if test="reqUri != null" >
+        req_uri = #{reqUri,jdbcType=VARCHAR},
+      </if>
+      <if test="opType != null" >
+        op_type = #{opType,jdbcType=TINYINT},
+      </if>
+      <if test="opTime != null" >
+        op_time = #{opTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="content != null" >
+        content = #{content,jdbcType=LONGVARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.example.model.sys.SysLog" >
+    update t_sys_log
+    set user_id = #{userId,jdbcType=VARCHAR},
+      user_name = #{userName,jdbcType=VARCHAR},
+      real_name = #{realName,jdbcType=VARCHAR},
+      broswer = #{broswer,jdbcType=VARCHAR},
+      level = #{level,jdbcType=TINYINT},
+      ip = #{ip,jdbcType=VARCHAR},
+      req_uri = #{reqUri,jdbcType=VARCHAR},
+      op_type = #{opType,jdbcType=TINYINT},
+      op_time = #{opTime,jdbcType=TIMESTAMP},
+      content = #{content,jdbcType=LONGVARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.example.model.sys.SysLog" >
+    update t_sys_log
+    set user_id = #{userId,jdbcType=VARCHAR},
+      user_name = #{userName,jdbcType=VARCHAR},
+      real_name = #{realName,jdbcType=VARCHAR},
+      broswer = #{broswer,jdbcType=VARCHAR},
+      level = #{level,jdbcType=TINYINT},
+      ip = #{ip,jdbcType=VARCHAR},
+      req_uri = #{reqUri,jdbcType=VARCHAR},
+      op_type = #{opType,jdbcType=TINYINT},
+      op_time = #{opTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <select id="getCount" resultType="java.lang.Integer" parameterType="java.lang.Long" >
+    select
+      count(1)
+    from t_sys_log
+    <where> 1=1
+      <if test="t.userName != null and t.userName !=''">
+        and  user_name like concat('%',#{t.userName,jdbcType=VARCHAR},'%')
+      </if>
+      <if test="t.content != null and t.content !=''">
+        and  content like concat('%',#{t.content,jdbcType=VARCHAR},'%')
+      </if>
+      <if test="t.opType != null and t.opType !=''">
+        and  op_type =#{t.opType,jdbcType=TINYINT}
+      </if>
+      <if test="t.level != null and t.level !=''">
+        and  level =  #{t.level,jdbcType=TINYINT}
+      </if>
+      <if test="t.startTime != null and t.startTime !=''">
+        and  op_time <![CDATA[ >= #{t.startTime} ]]>
+      </if>
+      <if test="t.endTime != null and t.endTime !=''">
+        and  op_time <![CDATA[ <=#{t.endTime} ]]>
+      </if>
+    </where>
+  </select>
+
+  <select id="getList" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
+    select
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from t_sys_log
+    <where> 1=1
+      <if test="t.userName != null and t.userName !=''">
+        and  user_name like concat('%',#{t.userName,jdbcType=VARCHAR},'%')
+      </if>
+      <if test="t.content != null and t.content !=''">
+        and  content like concat('%',#{t.content,jdbcType=VARCHAR},'%')
+      </if>
+      <if test="t.opType != null and t.opType !=''">
+        and  op_type =#{t.opType,jdbcType=TINYINT}
+      </if>
+      <if test="t.level != null and t.level !=''">
+        and  level =  #{t.level,jdbcType=TINYINT}
+      </if>
+      <if test="t.startTime != null and t.startTime !=''">
+        and  op_time <![CDATA[ >= #{t.startTime} ]]>
+      </if>
+      <if test="t.endTime != null and t.endTime !=''">
+        and  op_time <![CDATA[ <=#{t.endTime} ]]>
+      </if>
+      limit #{pageIndex},#{pageSize}
+    </where>
+  </select>
+</mapper>

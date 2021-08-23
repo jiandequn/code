@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head th:include="layout :: htmlhead" th:with="title='区域新增用户占比'"></head>
+<form id="searchForm" class="layui-form layui-form-pane" method="post" action="" style="margin-top: 20px;"
+      lay-filter="searchFormFilter">
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">专区</label>
+            <div class="layui-input-inline">
+                <select id="parentColumnId" name="parentColumnId" lay-verify="required">
+                </select>
+            </div>
+        </div>
+        <div id="rangeTimeDiv" class="layui-inline">
+            <label class="layui-form-label">时间</label>
+            <div class="layui-input-inline" style="width: 175px;">
+                <input name="startDate" id="insertTimeStart" placeholder="yyyy-MM-dd" autocomplete="off"
+                       class="layui-input" type="text"/>
+            </div>
+            <div class="layui-form-mid">-</div>
+            <div class="layui-input-inline" style="width: 175px;">
+                <input name="endDate" id="insertTimeEnd" placeholder="yyyy-MM-dd" autocomplete="off"
+                       class="layui-input" type="text"/>
+            </div>
+        </div>
+        <div id="localWeekDiv" class="layui-inline">
+            <label class="layui-form-label">周</label>
+            <div class="layui-input-inline" style="width: 175px;">
+                <input name="localWeek" id="localWeek" ype="text" required lay-verify="required"
+                       placeholder="选择时间自动格式化成周" autocomplete="off" class="layui-input"/>
+                <div id="insertlocalWeek" hidden="hidden"></div>
+            </div>
+        </div>
+        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        <button id="searchSubmit" class="layui-btn" lay-submit="" lay-filter="searchSubmit">查询</button>
+        <button id="xAixsStypeStyle" class="layui-btn" style="display:none;">样式选择</button>
+    </div>
+</form>
+<hr class="layui-bg-black"/>
+<div class="layui-tab layui-tab-card" lay-filter="reportTab">
+    <ul class="layui-tab-title">
+        <li class="layui-this">表格</li>
+        <li>柱图表</li>
+        <li>周点播用户占比图</li>
+    </ul>
+    <div class="layui-tab-content" style="height: 100px;">
+        <div class="layui-tab-item layui-show">
+            <table id="reportList" lay-filter="reportTable"></table>
+        </div>
+        <div class="layui-tab-item">
+            <div id="container" style="min-width:400px;min-height:600px"></div>
+        </div>
+        <div class="layui-tab-item">
+            <div id="container1" style="min-width:400px;min-height:600px"></div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript" th:src="@{/js/report/common.js}"></script>
+<script type="text/javascript" th:src="@{/highcharts/highcharts.js}"></script>
+<script th:src="@{/js/dateUtils.js}"></script>
+<script th:src="@{/highcharts/modules/exporting.js}"></script>
+<script th:src="@{/highcharts/highcharts-zh_CN.js}"></script>
+<script th:src="@{/js/report/chartUtils.js}"></script>
+<script>
+    layuiTabId = 0;
+    var tableIns;
+    var pageCurr;
+    var tableSort = [{field: 'tDate', type: 'desc'}]
+    var productColumnArr = initProductColumnSelect("parentColumnId");
+    var currDate = getYesterday();
+    var ppfunsChart = new PpfunsChart({
+        url: "chart/list",
+        elm: 'container',
+        styleBtn: 'xAixsStypeStyle',
+        chartsTypeArr: [
+            {name: 'pageUserCount', value: 'column', title: '访问用户数'},
+            {name: 'playUserCount', value: 'column', title: '播放用户数'},
+            {name: 'playCount', value: 'column', title: '播放次数'},
+            {name: 'duration', value: 'column', title: '播放时长'},
+            {name: 'perUserPlayCount', value: 'line', title: '人均点播次数'},
+        ],
+        countFields:[ 'playCount', 'duration', 'perUserPlayCount']
+    })
+    initYearAndWeekSelect("localWeek")
+    layui.use(['form', 'laydate', 'element', 'table'], function () {
+        var form = layui.form;
+        var laydate = layui.laydate;
+        var element = layui.element;
+        laydate.render({
+            elem: '#insertTimeStart'
+            , trigger: 'click'//添加属性
+        });
+        laydate.render({
+            elem: '#insertTimeEnd'
+            , trigger: 'click'//添加属性
+        });
+        laydate.render({
+            elem: '#insertlocalWeek'
+            ,eventElem: '#localWeek'
+            ,trigger: 'click'
+            ,done: function(value, date, endDate){
+                $("#localWeek").val(getWeekOfYear2(value))
+            }
+        });
+        form.render("select");
+        form.on('submit(searchSubmit)', function (data) {
+            if (layuiTabId == 0) {
+                queryTablePageByOrderby(tableIns, data, pageCurr, tableSort)
+            } else if (layuiTabId == 1) {
+                ppfunsChart.render({
+                    requestParams: data.field,
+                    title: "<div style='text-shadow: 10px 10px 50px #000;'>专区" + $('#parentColumnId').find("option:selected").text() + "</div>" + "日访问统计",
+                });
+            } else if (layuiTabId == 2) {
+                delete data.field.countFields;
+                new PpfunsChart({
+                    url: "chart/list2",
+                    elm: 'container1',
+                    chartsTypeArr: [
+                        {name: 'beforeUserCount', value: 'column', title: '上周播放用户数用户数'},
+                        {name: 'localUserCount', value: 'column', title: '本周播放用户数'},
+                        {name: 'ratio', value: 'spline', title: '周占比'},
+                    ],
+                }).render({
+                    requestParams: data.field,
+                    title: "<div style='text-shadow: 10px 10px 50px #000;'>专区" + $('#parentColumnId').find("option:selected").text() + "</div>" + "日播放用户数周占比",
+                });
+            }
+            return false;
+        });
+        element.on('tab(reportTab)', function (data) {
+            layuiTabId = data.index;
+            if (layuiTabId == 0) {
+                $("#rangeTimeDiv").show()
+                $("#xAixsStypeStyle").hide();
+                $("#localWeekDiv").hide();
+            } else if (layuiTabId == 1) {
+                $("#rangeTimeDiv").show()
+                $("#xAixsStypeStyle").show();
+                $("#localWeekDiv").hide();
+            } else if (layuiTabId == 2) {
+                $("#rangeTimeDiv").hide()
+                $("#localWeekDiv").show();
+                $("#xAixsStypeStyle").hide();
+            }
+            $('#searchSubmit').trigger("click");
+        });
+
+
+    });
+    layui.use('table', function () {
+        var table = layui.table;
+        tableIns = table.render({
+            elem: '#reportList'
+            , url: 'noArea/list'
+            , method: 'post' //默认：get请求
+            , cellMinWidth: 80
+            , height: 'full-200'
+            , page: true
+            , toolbar: true
+            , autoSort: false
+            , mutlSort: true
+            , where: {
+                parentColumnId: $('#parentColumnId').find("option:selected").val(),
+                orderby: getOrderByParams(tableIns, tableSort)
+            }
+            , initSort: tableSort
+            , request: {
+                pageName: 'page' //页码的参数名称，默认：page
+                , limitName: 'limit' //每页数据量的参数名，默认：limit
+            }
+            , response: {
+                statusName: 'status' //数据状态的字段名称，默认：code
+                , statusCode: 200 //成功的状态码，默认：0
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'rows' //数据列表的字段名称，默认：data
+            }
+            , cols: [
+                [{type: 'numbers'}
+                    , {field: 'tDate', title: '日期', sort: true}
+                    , {field: 'parentColumnId', title: '专区ID'}
+                    , {
+                    field: 'parentColumnName', title: '专区名称', templet: function (r) {
+                        var parentColumnName = '';
+                        $.each(productColumnArr, function (index, item) {
+                            if (item.columnId == r.parentColumnId) parentColumnName = item.columnName;
+                        });
+                        return parentColumnName;
+                    }
+                }
+                    , {field: 'userType', title: '用户类型'}
+                    , {field: 'pageUserCount', title: '访问用户数', sort: true}
+                    , {field: 'playUserCount', title: '播放用户数', sort: true}
+                    , {field: 'playCount', title: '点播次数', sort: true}
+                    , {field: 'duration', title: '播放时长', sort: true}
+                ]
+            ]
+            , done: function (res, curr, count) {
+                //如果是异步请求数据方式，res即为你接口返回的信息。
+                //如果是直接赋值的方式，res即为：{data: [], count: 99} data为当前页数据、count为数据总长度
+                //console.log(res);
+                //得到当前页码
+                //console.log(curr);
+                //得到数据总量
+                //console.log(count);
+                pageCurr = curr;
+            }
+        });
+        //触发排序事件
+        table.on('sort(reportTable)', function (obj) { //注：sort 是工具条事件名，test 是 table 原始容器的属性 lay-filter="对应的值"
+            tableSort = obj;//等价于this.sortCols;或者${this}[0].sortCols
+            $('#searchSubmit').trigger("click");
+        });
+
+    });
+
+
+</script>
+</html>

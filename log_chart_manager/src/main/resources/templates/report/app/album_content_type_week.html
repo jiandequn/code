@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head th:include="layout :: htmlhead" th:with="title='专辑类型按周统计'"></head>
+<form id="searchForm" class="layui-form layui-form-pane" method="post" action="" style="margin-top: 20px;"
+      lay-filter="searchFormFilter">
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">专区</label>
+            <div class="layui-input-inline">
+                <select id="parentColumnId" name="parentColumnId" lay-verify="required">
+                </select>
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">专辑类型</label>
+            <div class="layui-input-inline" style="width: 300px;">
+                <div id="contentTypes" style="width: 300px; "></div>
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">时间</label>
+            <div class="layui-input-inline" style="width: 175px;">
+                <input name="startDate" id="insertTimeStart" placeholder="yyyy-MM-dd" autocomplete="off"
+                       class="layui-input" type="text"/>
+            </div>
+
+            <div class="layui-form-mid">-</div>
+            <div class="layui-input-inline" style="width: 175px;">
+                <input name="endDate" id="insertTimeEnd" placeholder="yyyy-MM-dd" autocomplete="off"
+                       class="layui-input" type="text"/>
+            </div>
+        </div>
+        <div class="layui-inline" style="display:none" id="contentTypeID">
+            <label class="layui-form-label">统计类型</label>
+            <div class="layui-input-inline">
+                <select id="countType" name="countType" lay-verify="required">
+                    <option value="0">播放用户数</option>
+                    <option value="1">播放次数</option>
+                    <option value="2">播放时长</option>
+                </select>
+            </div>
+        </div>
+        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        <button id="searchSubmit" class="layui-btn" lay-submit="" lay-filter="searchSubmit">查询</button>
+<!--        <button class="layui-btn layui-icon-export" lay-submit="" lay-filter="download">下载Excel</button>-->
+    </div>
+</form>
+<hr class="layui-bg-black"/>
+<div class="layui-tab layui-tab-card" lay-filter="reportTab">
+    <ul class="layui-tab-title">
+        <li class="layui-this">表格</li>
+        <li id="controllReportId">曲线图</li>
+    </ul>
+    <div class="layui-tab-content" style="height: 100px;">
+        <div class="layui-tab-item layui-show">
+            <table id="reportList" lay-filter="reportTable"></table>
+        </div>
+        <div id="showReportId" class="layui-tab-item">
+            <div id="container" style="min-width:400px;min-height:600px"></div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript" th:src="@{/js/report/common.js}"></script>
+<script type="text/javascript" th:src="@{/highcharts/highcharts.js}"></script>
+<script th:src="@{/js/dateUtils.js}"></script>
+<script th:src="@{/highcharts/modules/exporting.js}"></script>
+<script th:src="@{/highcharts/highcharts-zh_CN.js}"></script>
+<script>
+    layuiTabId = 0;
+    var tableIns;
+    var pageCurr;
+    var tableSort = [{field: 'y', type: 'desc'}, {field: 'w', type: 'desc'}]
+    var productColumnArr = initProductColumnSelect("parentColumnId");
+    var currDate = getYesterday();
+    layui.use(['form', 'laydate', 'element', 'table'], function () {
+        var form = layui.form;
+        var laydate = layui.laydate;
+        var element = layui.element;
+        laydate.render({
+            elem: '#insertTimeStart'
+            , trigger: 'click'//添加属性
+        });
+        laydate.render({
+            elem: '#insertTimeEnd'
+            , trigger: 'click'//添加属性
+        });
+        form.render("select");
+        form.on('submit(searchSubmit)', function (data) {
+            if (layuiTabId == 0) {
+                $("#contentTypeID").hide()
+                queryTablePageByOrderby(tableIns, data, pageCurr, tableSort)
+            } else {
+                $("#contentTypeID").show()
+                chartFunc()
+            }
+            return false;
+        });
+        element.on('tab(reportTab)', function (data) {
+            layuiTabId = data.index;
+            $('#searchSubmit').trigger("click");
+        });
+    });
+    layui.config({
+        base: '../../layui/extend/'
+    }).extend({
+        xmSelect: 'xm-select'
+    }).use(['xmSelect'], function(){
+        initAlbumContentTypeXmSelect(layui.xmSelect,"contentTypes")
+    });
+    layui.use('table', function () {
+        var table = layui.table;
+        tableIns = table.render({
+            elem: '#reportList'
+            ,title:"专区专辑类型月统计"
+            , url: 'list'
+            , method: 'post' //默认：get请求
+            , cellMinWidth: 80
+            , height: 'full-200'
+            , page: true
+            , toolbar: true
+            , autoSort: false
+            , mutlSort: true
+            , where: {
+                parentColumnId: $('#parentColumnId').find("option:selected").val(),
+                orderby: getOrderByParams(tableIns, tableSort)
+            }
+            , initSort: tableSort
+            , request: {
+                pageName: 'page' //页码的参数名称，默认：page
+                , limitName: 'limit' //每页数据量的参数名，默认：limit
+            }
+            , response: {
+                statusName: 'status' //数据状态的字段名称，默认：code
+                , statusCode: 200 //成功的状态码，默认：0
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'rows' //数据列表的字段名称，默认：data
+            }
+            , cols: [
+                [{type: 'numbers'}
+                    , {field: 'y', title: '年份', sort: true}
+                    , {field: 'w', title: '周', sort: true}
+                    , {field: 'parentColumnId', title: '专区ID'}
+                    , {
+                    field: 'parentColumnName', title: '专区名称', templet: function (r) {
+                        var parentColumnName = '';
+                        $.each(productColumnArr, function (index, item) {
+                            if (item.columnId == r.parentColumnId) parentColumnName = item.columnName;
+                        });
+                        return parentColumnName;
+                    }
+                }
+                    , {field: 'userType', title: '用户类型'}
+                    , {field: 'contentType', title: '专辑类型类型', sort: true}
+                    , {field: 'contentTypeName', title: '专辑类型名称'}
+                    , {field: 'userCount', title: '播放用户数', sort: true}
+                    , {field: 'playCount', title: '点播次数', sort: true}
+                    , {field: 'duration', title: '播放时长', sort: true}
+                ]
+            ]
+            , done: function (res, curr, count) {
+                pageCurr = curr;
+            }
+        });
+        //触发排序事件
+        table.on('sort(reportTable)', function (obj) { //注：sort 是工具条事件名，test 是 table 原始容器的属性 lay-filter="对应的值"
+            tableSort = obj;//等价于this.sortCols;或者${this}[0].sortCols
+            $('#searchSubmit').trigger("click");
+        });
+    });
+
+    function chartFunc() {
+        var parentColumnName = $('#parentColumnId').find("option:selected").text();
+        $.ajax({
+            type: "GET",
+            data: $("#searchForm").serialize(),
+            url: "chart/list",
+            success: function (result) {
+                var titleText = "<div style='text-shadow: 10px 10px 50px #000;'>" + parentColumnName + "</div>" + "专区专辑类型周统计数据";
+                var chart = Highcharts.chart('container', {
+                    chart: {
+                        zoomType: 'xy'
+                    },
+                    title: {
+                        text: titleText
+                    },
+                    subtitle: {
+                        text: '数据来源: 聚视互娱日志采集'
+                    },
+                    xAxis: [{
+                        categories: result.categories,
+                        crosshair: true
+                    }],
+                    yAxis: {
+                        title: {
+                            text: result.yAxisTitle
+                        }
+                    },
+                    tooltip: {
+                        shared: true
+                    },
+                    legend: {
+                        layout: 'vertical',
+                        align: 'left',
+                        x: 80,
+                        verticalAlign: 'top',
+                        y: 55,
+                        floating: true,
+                        backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF'
+                    },
+                    series: result.series
+                });
+            }
+        });
+    }
+</script>
+</html>

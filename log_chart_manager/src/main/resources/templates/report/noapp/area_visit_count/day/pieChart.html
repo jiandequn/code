@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <base th:href="${#request.getContextPath()}+'/'">
+</head>
+<body>
+<header th:fragment="pieChart" th:with="title='所有专区区域累计访问用户饼图'">
+    <form id="searchPieForm" class="layui-form layui-form-pane" method="post" action="" style="margin-top: 20px;"
+          lay-filter="searchPieFormFilter">
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">用户类型</label>
+                <div class="layui-input-inline">
+                    <select id="userType" name="userType" lay-verify="required">
+                        <option label="OTT" th:selected="${ppfuns.userType=='OTT'}" >OTT</option>
+                        <option label="VOD" th:selected="${ppfuns.userType=='VOD'}">VOD</option>
+                    </select>
+                </div>
+            </div>
+            <div class="layui-inline">
+                <label class="layui-form-label">时间</label>
+                <div class="layui-input-inline" style="width: 100px;">
+                    <input name="startDate" id="insertTimeStart" lay-verify="required" placeholder="yyyy-MM-dd" autocomplete="off"
+                           class="layui-input" type="text"/>
+                </div>
+            </div>
+            <button id="reset" type="reset" class="layui-btn">重置</button>
+            <button id="searchPieSubmit" class="layui-btn" lay-submit="return false;" lay-filter="searchPieSubmit">查询</button>
+        </div>
+    </form>
+    <div id="container" style="min-width:400px;min-height:600px"></div>
+    <script type="text/javascript" th:src="@{/js/report/common.js}"></script>
+    <script th:src="@{/js/dateUtils.js}"></script>
+    <script type="text/javascript" th:src="@{/highcharts/highcharts.js}"></script>
+    <script th:src="@{/highcharts/modules/exporting.js}"></script>
+    <script th:src="@{/highcharts/highcharts-zh_CN.js}"></script>
+    <script th:src="@{/js/report/chartUtils.js}"></script>
+    <script>
+        layui.use(['form', 'laydate'], function () {
+            layui.laydate.render({
+                elem: '#searchPieForm #insertTimeStart'
+                ,trigger: 'click'//添加属性
+                ,value: getYesterday()
+            });
+            layui.form.render();
+            layui.form.on('submit(searchPieSubmit)', function (data) {
+                new PpfunsChart({
+                    url: "chart/pie/totalUserCount",
+                    chartType: 'pie',
+                    requestParams: data.field,
+                    title: "<div style='text-shadow: 10px 10px 50px #0000FF;'>" + $('#searchPieForm #userType').find("option:selected").text() + "</div>"+ "下所有专区累计区域访问用户饼图",
+                }).render();
+                return false;
+            });
+        });
+
+    </script>
+</header>
+</body>
+</html>

@@ -1,0 +1,20 @@
+sqoop import \
+-Dmapreduce.job.queuename=${yarn_queue} \
+--connect "${content_mysql_url}?useUnicode=true&characterEncoding=utf-8" \
+--username ${content_mysql_username} \
+--password ${content_mysql_password} \
+--query 'select album_id,album_name,content_type,labels from t_album where $CONDITIONS' \
+--driver com.mysql.jdbc.Driver \
+--fields-terminated-by '\t' \
+--delete-target-dir \
+--target-dir "/${hive_province}/sqoop/tmp/album_tmp" \
+--num-mappers 10 \
+--split-by 'album_id' \
+--hive-import \
+--hive-database $hive_db \
+--hive-table album_tmp \
+--hive-overwrite \
+--outdir ${sqoop_outdir}/mr_java
+
+
+

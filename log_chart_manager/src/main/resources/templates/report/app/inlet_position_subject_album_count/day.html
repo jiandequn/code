@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head th:include="layout :: htmlhead" th:with="title='专区专题入口详情页统计'"></head>
+<form id="searchForm" class="layui-form layui-form-pane" method="post" action="" style="margin-top: 20px;">
+    <div class="layui-form-item">
+        <label class="layui-form-label">专区</label>
+        <div class="layui-input-inline">
+            <select id="parentColumnId" name="parentColumnId" lay-verify="required">
+            </select>
+        </div>
+        <label class="layui-form-label">时间</label>
+        <div class="layui-input-inline" style="width: 175px;">
+            <input name="startDate" id="insertTimeStart" placeholder="yyyy-MM-dd" autocomplete="off"
+                   class="layui-input" type="text"/>
+        </div>
+        <div class="layui-form-mid">-</div>
+        <div class="layui-input-inline" style="width: 175px;">
+            <input name="endDate" id="insertTimeEnd" placeholder="yyyy-MM-dd" autocomplete="off"
+                   class="layui-input" type="text"/>
+        </div>
+        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        <button id="searchSubmit" class="layui-btn" lay-submit="" lay-filter="searchSubmit">查询</button>
+    </div>
+</form>
+<hr class="layui-bg-black"/>
+<div class="layui-tab layui-tab-card" lay-filter="reportTab">
+    <ul class="layui-tab-title">
+        <li class="layui-this">表格</li>
+        <li style="display: none">柱图表</li>
+    </ul>
+    <div class="layui-tab-content" style="height: 100px;">
+        <div class="layui-tab-item layui-show">
+            <table id="reportList" lay-filter="reportTable"></table>
+        </div>
+        <div class="layui-tab-item" disabled="disabled">
+            <div id="container" style="min-width:400px;min-height:600px"></div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript" th:src="@{/js/report/common.js}"></script>
+<script type="text/javascript" th:src="@{/highcharts/highcharts.js}"></script>
+<script th:src="@{/js/dateUtils.js}"></script>
+<script th:src="@{/highcharts/modules/exporting.js}"></script>
+<script th:src="@{/highcharts/highcharts-zh_CN.js}"></script>
+<script>
+    layuiTabId=0;
+    var tableIns;
+    var pageCurr;
+    var tableSort = [{field: 'tDate', type: 'desc'}];
+    var productColumnArr = initProductColumnSelect("parentColumnId");
+    layui.use(['form','laydate','element'], function(){
+        var form = layui.form;
+        var laydate = layui.laydate;
+        var element = layui.element;
+        laydate.render({
+            elem: '#insertTimeStart'
+        });
+        laydate.render({
+            elem: '#insertTimeEnd'
+        });
+        form.render("select");
+        form.on('submit(searchSubmit)', function(data){
+            if(layuiTabId==0){
+                pageCurr=0;
+                queryTablePageByOrderby(tableIns,data,pageCurr,tableSort)
+            }else{
+            }
+            return false;
+        });
+        element.on('tab(reportTab)', function(data){
+            layuiTabId=data.index;
+            $('#searchSubmit').trigger("click");
+        });
+    });
+    layui.use('table', function(){
+        var table = layui.table;
+        tableIns=table.render({
+            elem: '#reportList'
+            ,url:'list'
+            ,method: 'post' //默认：get请求
+            ,cellMinWidth: 60
+            ,limit: 30
+            ,page: true
+            ,toolbar: true
+            ,autoSort: false
+            ,mutlSort:true
+            ,initSort: tableSort
+            ,where:{
+                parentColumnId:$('#parentColumnId').find("option:selected").val(),
+                orderby:getOrderByParams(null,tableSort)
+            }
+            ,request: {
+                pageName: 'page' //页码的参数名称，默认：page
+                ,limitName: 'limit' //每页数据量的参数名，默认：limit
+            },response:{
+                statusName: 'status' //数据状态的字段名称，默认：code
+                ,statusCode: 200 //成功的状态码，默认：0
+                ,countName: 'total' //数据总数的字段名称，默认：count
+                ,dataName: 'rows' //数据列表的字段名称，默认：data
+            }
+            ,cols: [
+                [{type:'numbers'}
+                    ,{field:'tDate', title:'日期',with:60,sort: true}
+                    ,{field:'parentColumnId', title:'专区ID'}
+                    ,{field:'parentColumnName', title:'专区名称',with:100,templet:function(r){
+                        var parentColumnName='';
+                        $.each(productColumnArr,function(index,item){
+                            if(item.columnId== r.parentColumnId)parentColumnName=item.columnName;
+                        });
+                        return parentColumnName;
+                    }}
+                    ,{field:'userType', title:'用户类型',with:60}
+                    ,{field:'eventsType', title:'事件',with:100}
+                    ,{field:'afterSpm', title:'入口配置',with:140,sort: true}
+                    , {field: 'subjectName', title: '专题名称'}
+                    , {field: 'albumId', title: '专辑ID'}
+                    , {field: 'albumName', title: '专辑ID'}
+                    , {field: 'contentType', title: '专辑类型'}
+                    , {field: 'contentTypeName', title: '专辑类型名称'}
+                    ,{field:'userCount', title:'访问用户数',with:60,sort: true}
+                    ,{field:'visitCount', title:'点击次数',with:60,sort: true}
+                ]
+            ]
+            ,  done: function(res, curr, count){
+                pageCurr=curr;
+            }
+        });
+        //触发排序事件
+        table.on('sort(reportTable)', function (obj) { //注：sort 是工具条事件名，test 是 table 原始容器的属性 lay-filter="对应的值"
+            tableSort=obj;//等价于this.sortCols;或者${this}[0].sortCols
+            $('#searchSubmit').trigger("click");
+        });
+    });
+</script>
+</html>

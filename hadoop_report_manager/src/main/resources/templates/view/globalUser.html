@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+	  xmlns:th="http://www.thymeleaf.org">
+<head th:replace="header :: common_header(~{::title},~{::link},~{})">
+
+	<meta charset="UTF-8">
+	<title>内容管理平台</title>
+	<style>
+		#pannel .tabs-header {
+			display: block;
+		}
+		span.star{
+			color:red;
+		}
+	</style>
+</head>
+<body>
+<div class="easyui-panel" style="margin: 1px;"  fit="true">
+	<div id="contentToolbar" fit="true">
+		<a href="javascript:void(0);" class="easyui-linkbutton" id="removeAllBookMark" iconCls="icon-remove" plain="true">清空收藏记录</a>
+		<div style='height:25px;border-left:1px solid #ccc;border-right:1px solid #fff;display:inline;margin: 0px 6px'></div>
+		<!--<div th:replace="navbar :: html"></div>-->
+		<a href="javascript:void(0);" class="easyui-linkbutton" id="queryContent" iconCls="icon-search" plain="true" >查询</a>
+	</div>
+	<table id="globalUser_content_table" fit="true"></table>
+</div>
+</div>
+<script type="text/javascript" src="/js/report/globalUser.js?v="+ Math.round(Math.random()*1000)></script>
+</body>
+</html>

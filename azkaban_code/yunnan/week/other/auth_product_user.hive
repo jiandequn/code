@@ -1,0 +1,8 @@
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.groupby.orderby.position.alias=true; -- 启用别名对于groupby和orderby
+insert overwrite table auth_product_user
+select user_id,mac,sn,user_type,area_code,param['thirdProductCode'] as third_product_code,max(create_time) as create_time
+ from events_type_log
+ where events_type='AUTH_PRODUCT' and param['thirdProductCode']='999993' and create_time<'${endDate}' and create_time>='${startDate}'
+ group by 1,2,3,4,5,6

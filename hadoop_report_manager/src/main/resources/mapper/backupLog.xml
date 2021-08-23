@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ppfuns.dao.BackupLogDao" >
+    <select id="checkTable" resultType="java.lang.String">
+         show tables like #{tableName};
+    </select>
+
+    <select id="selectTableStruct" resultType="java.util.HashMap">
+        SHOW CREATE TABLE ${tableName};
+    </select>
+    <select id="createTable">
+      ALTER TABLE ${tableName} RENAME TO ${renameTableName};
+      ${tableSql}
+    </select>
+    <select id="selectTableDate" resultType="java.lang.String">
+        select CONCAT(#{tableName},'_',REPLACE(SUBSTRING(min(create_time),1,10),'-',''),'_',REPLACE(SUBSTRING(max(create_time),1,10),'-',''))
+        from ${tableName}
+    </select>
+    <select id="dropReNameTableName" resultType="java.lang.String">
+          DROP TABLE IF EXISTS `${renameTableName}`;
+    </select>
+</mapper>

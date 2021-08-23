@@ -1,0 +1,52 @@
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.groupby.orderby.position.alias=true; -- 启用别名对于groupby和orderby
+set hive.vectorized.execution.enabled=false; --控制是否启用查询执行的向量模式
+
+--短视频小窗口播放时间
+create TEMPORARY table short_video_duration_day_tmp as
+select  concat(y,'-',m,'-',d) as t_date,parent_column_id,user_type,count(distinct user_id) as user_count,sum(param['timePosition']) as duration from events_type_log
+ where events_type ='COLUMN_TYPE_SHORT_VIDEO_HISTORY_POINT' and concat(y,'-',m,'-',d)<'${endDate}' and concat(y,'-',m,'-',d)>='${startDate}'
+ group by 1,2,3;
+
+--列出所有短视频ID
+create TEMPORARY table play_short_video_tmp as
+ select parent_column_id,param['shortVideoId'] as short_video_id from events_type_log
+ where events_type ='COLUMN_TYPE_SHORT_VIDEO_HISTORY_POINT' and concat(y,'-',m,'-',d)<'${endDate}' and concat(y,'-',m,'-',d)>='${startDate}'
+ group by 1,2;
+
+ --把用户点击的短视频log存入临时表
+ create TEMPORARY table short_video_click_tmp
+  select y,m,d,a.parent_column_id,a.column_id,a.user_type,mac,sn,ca,user_id,b.short_video_id,param['nowSpm'] as now_spm,param['contentId'] as album_id
+from events_type_log a
+inner join play_short_video_tmp b ON a.parent_column_id=b.parent_column_id and param['afterSpm'] rlike concat('123311.PAGE_YNGDJSJPB.128247.',b.short_video_id)
+ where events_type ='PAGE_ALBUM_DETAILS'
+  and concat(y,'-',m,'-',d)<'${endDate}' and concat(y,'-',m,'-',d)>='${startDate}'
+
+
+--对短视频点进行点播的次数和用户数
+create TEMPORARY table play_short_video_click_sum as
+ select concat(a.y,'-',a.m,'-',a.d) as t_date,a.parent_column_id,a.user_type,count(distinct a.user_id) as user_count,
+count(1) as play_count
+from events_type_log a
+inner join short_video_click_tmp b ON a.parent_column_id=b.parent_column_id and param['afterSpm'] rlike concat('123311.PAGE_YNGDJSJPB.128247.',b.short_video_id)
+ where events_type ='PAGE_ALBUM_DETAILS'
+  and concat(y,'-',m,'-',d)<'${endDate}' and concat(y,'-',m,'-',d)>='${startDate}'
+ group by 1,2,3;
+
+--合并日统计的用户数和点播次数，小视频窗口播放时长
+select t_date,parent_column_id,user_type,
+sum(small_win_user_count) as small_win_user_count,sum(click_user_count) click_user_count,sum(play_count) play_count,
+ sum(small_win_duration) as small_win_duration
+ from (
+ select t_date,parent_column_id,user_type,user_count as small_win_user_count,0 click_user_count,0 as play_count,duartion as small_win_duration
+  from short_video_duration_day_tmp
+ union all
+ select t_date,parent_column_id,user_type,0 as small_win_user_count,user_count as click_user_count,
+ play_count,0 as small_win_duration from play_short_video_click_sum) a group by 1,2,3;
+
+--获取对短视频点击后播放时长的统计
+select * from short_video_click_tmp t
+left join events_type_log e on e.parent_column_id=t.parent_column_id and e.column_id=t.column_id and e.param['afterSpm']=t.now_spm and e.user_id=t.user_id
+and e.param[contentId]=t.album_id
+where events_type ='PAGE_ALBUM_DETAILS' and concat(y,'-',m,'-',d)<'${endDate}' and concat(y,'-',m,'-',d)>='${startDate}'

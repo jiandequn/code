@@ -1,0 +1,25 @@
+
+sqoop eval \
+-Dmapreduce.job.queuename=${yarn_queue} \
+--connect "${mysql_url}?useUnicode=true&characterEncoding=utf-8" \
+--username ${mysql_username} \
+--password ${mysql_password} \
+--metadata-transaction-isolation-level 'TRANSACTION_REPEATABLE_READ' \
+--query "delete from app_online_order_detail where  create_time>='${startDate}' and create_time<'${endDate}'"
+
+sqoop export \
+-Dmapreduce.job.queuename=${yarn_queue} \
+--connect "${mysql_url}?useUnicode=true&characterEncoding=utf-8" \
+--username ${mysql_username} \
+--password ${mysql_password} \
+--export-dir /${hive_province}/hive/reports/app/online_order/detail \
+--table app_online_order_detail \
+--columns user_type,parent_column_id,order_id,mac,sn,user_id,area_code,product_id,product_name,content_type,present_price,content_id,pay_type,third_product_code,inlet_column_id,inlet_column_code,inlet_column_name,inlet_ablum_id,inlet_album_name,create_time \
+--update-key user_type,parent_column_id,order_id \
+--update-mode allowinsert \
+--input-null-string '\\N'  \
+--input-null-non-string '\\N' \
+--input-fields-terminated-by '\t' \
+--outdir ${sqoop_outdir}/mr_java
+
+

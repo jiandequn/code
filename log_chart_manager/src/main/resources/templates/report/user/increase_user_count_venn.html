@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head th:include="layout :: htmlhead" th:with="title='专区累计访问用户数-韦恩图'"></head>
+<form id="searchForm" class="layui-form layui-form-pane" style="margin-top: 20px;">
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">用户类型</label>
+            <div class="layui-input-inline">
+                <select id="userType" name="userType">
+                    <option label="OTT" th:selected="${ppfuns.userType=='OTT'}" >OTT</option>
+                    <option label="VOD" th:selected="${ppfuns.userType=='VOD'}">VOD</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">截至时间</label>
+            <div class="layui-input-inline" style="width: 100px;">
+                <input name="endDate" id="insertTimeEnd" placeholder="yyyy-MM-dd" autocomplete="off"
+                       class="layui-input" type="text"/>
+            </div>
+        </div>
+
+        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        <button class="layui-btn" lay-submit="" lay-filter="searchSubmit">查询</button>
+        <button class="layui-btn" type="button" onclick="showParentColumns()">查看专区信息</button>
+    </div>
+
+</form>
+<hr class="layui-bg-black"/>
+<div id="container" style="min-width:400px;min-height:600px"></div>
+<script type="text/javascript" th:src="@{/js/report/common.js}"></script>
+<script type="text/javascript" th:src="@{/highcharts/highcharts.js}"></script>
+<script th:src="@{/highcharts/modules/exporting.js}"></script>
+<script th:src="@{/highcharts/highcharts-zh_CN.js}"></script>
+<script th:src="@{/highcharts/modules/venn.js}"></script>
+<script>
+
+    layui.use(['form','laydate','layer'], function(){
+        var form = layui.form;
+        var laydate = layui.laydate;
+        layer=layui.layer;
+        laydate.render({
+            elem: '#insertTimeEnd'
+        });
+        form.render("select");
+        form.on('submit(searchSubmit)', function (data) {
+            chartFunc();
+            return false;
+        });
+
+    });
+    function showParentColumns(){
+        var productColumnArr=getProductColumns();
+        var $table_parentColumn = $('<table class="layui-table" id="tempTableId"></table>');
+        $table_parentColumn.append('<colgroup><col width="80"><col width="120"><col width="180"> </colgroup>')
+        $table_parentColumn.append('<thead><tr><th>类型</th><th>专区ID</th><th>专区名称</th>  </tr> </thead>')
+        $table_parentColumn.append('<tbody>');
+        var userType=$('#userType').find("option:selected").val();
+        $.each(productColumnArr,function(index,item){
+            if(userType == item.userType){
+                $table_parentColumn.append('<tr><td>'+item.userType+'</td><td>'+item.columnId+'</td><td>'+item.columnName+'</td></tr>');
+            }
+        });
+        $table_parentColumn.append('</tbody>')
+        $table_parentColumn.appendTo($('body'));
+        layer.open({
+            title:'专区信息',
+            anim: 5,
+            type: 1,
+            offset: 'r',
+            content: $table_parentColumn, //这里content是一个DOM，注意：最好该元素要存放在body最外层，否则可能被其它的相对元素所影响
+            end : function(){
+                $('#tempTableId').remove();
+            }
+        });
+    }
+    function chartFunc() {
+        var loadIndex = layer.load(0, {time: 150*1000}); //又换了种风格，并且设定最长等待10秒
+        $.ajax({
+            type: "GET",
+            data: $("#searchForm").serialize(),
+            url: "get/increase_user_count/venn",
+            success: function (result) {
+                layer.close(loadIndex);
+                Highcharts.chart('container', {
+                    series: [{
+                        type: 'venn',
+                        name: '各'+$('#userType').find("option:selected").val()+'专区累计用户数-韦恩图',
+                        data:result
+                    }],
+                    title: {
+                        text: '所在专区区间用户数'
+                    }
+                });
+            }
+        });
+    }
+    chartFunc();
+</script>
+</html>

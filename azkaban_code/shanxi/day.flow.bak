@@ -1,0 +1,451 @@
+---
+config:
+  user.to.proxy: hadoop
+  failure.emails: noreply@foo.com
+  job_params: szmeizi=1
+  
+nodes:
+ - name: start_job
+   type: command
+   config:
+      command: echo '开始日处理'
+ - name: loadLogs_job
+   type: command
+   dependsOn:
+     - start_job
+   config:
+     command: bash ./day/load_log/load_datalog.sh ${job_params}
+ 
+ - name: clean_user_job
+   type: command
+   dependsOn:
+     - start_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/init_db_from_sql/import_clean_user.sqoop ${job_params}
+  
+ - name: product_column_job
+   type: command
+   dependsOn:
+     - start_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/init_db_from_sql/product_column.sqoop ${job_params}
+
+ - name: events_type_log_job
+   type: command
+   dependsOn:
+     - loadLogs_job
+     - clean_user_job
+     - product_column_job
+   config:
+     command: bash ./day/events_type_log/events_type_log.sh ${job_params}
+ 
+ - name: import_app_increase_user_job
+   type: command
+   dependsOn:
+     - start_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/app_increase_user/import_app_user_info.sqoop ${job_params}
+
+ - name: app_increase_user_hive_job
+   type: command
+   dependsOn:
+     - import_app_increase_user_job
+     - events_type_log_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/app_increase_user/app_increase_user.hive ${job_params}
+
+ - name: export_app_increase_user_job
+   type: command
+   dependsOn:
+     - app_increase_user_hive_job
+   config:
+     command: bash ./day/app_increase_user/export_increase_user.sh ${job_params}
+
+ - name: retention_user_2day_job
+   type: command
+   dependsOn:
+     - events_type_log_job
+   config:
+     command: bash ./day/retention_user/retention_user_hive.sh retentionDayNum=2 ${job_params}
+
+ - name: retention_user_3day_job
+   type: command
+   dependsOn:
+     - retention_user_2day_job
+   config:
+     command: bash ./day/retention_user/retention_user_hive.sh retentionDayNum=3 ${job_params}
+
+ - name: add_retention_user_2day_job
+   type: command
+   dependsOn:
+     - retention_user_3day_job
+     - app_increase_user_hive_job
+   config:
+     command: bash ./day/retention_user/retention_user_hive.sh retentionDayNum=2 retentionType=add ${job_params}
+
+ - name: app_area_visit_count_job
+   type: command
+   dependsOn:
+     - events_type_log_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/app_area_visit_count/1.hive ${job_params}
+
+ - name: export_app_area_visit_count_job
+   type: command
+   dependsOn:
+     - app_area_visit_count_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/app_area_visit_count/export.sqoop ${job_params}
+
+ - name: noapp_area_visit_count_job
+   type: command
+   dependsOn:
+     - events_type_log_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/noapp_area_visit_count/1.hive ${job_params}
+
+ - name: export_noapp_area_visit_count_job
+   type: command
+   dependsOn:
+     - noapp_area_visit_count_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/noapp_area_visit_count/export.sqoop ${job_params}
+
+ - name: app_bookmark_album_rank_job
+   type: command
+   dependsOn:
+     - events_type_log_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/app_bookmark_album_rank/1.hive ${job_params}
+
+ - name: export_app_bookmark_album_rank_job
+   type: command
+   dependsOn:
+     - app_bookmark_album_rank_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/app_bookmark_album_rank/export_day.sqoop ${job_params}
+
+ - name: export_app_bookmark_album_rank_total_job
+   type: command
+   dependsOn:
+     - app_bookmark_album_rank_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/app_bookmark_album_rank/export_total.sqoop ${job_params}
+
+ - name: app_search_album_rank_job
+   type: command
+   dependsOn:
+     - events_type_log_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/app_search_album_rank/1.hive ${job_params}
+
+ - name: export_app_search_album_rank_day_job
+   type: command
+   dependsOn:
+     - app_search_album_rank_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/app_search_album_rank/export.sqoop ${job_params}
+
+ - name: export_app_search_album_rank_total_job
+   type: command
+   dependsOn:
+     - app_search_album_rank_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/app_search_album_rank/export_total.sqoop ${job_params}
+  
+ - name: app_detail_page_count_job
+   type: command
+   dependsOn:
+     - events_type_log_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/app_detail_page_count/1.hive ${job_params}
+
+ - name: export_app_detail_page_count_job
+   type: command
+   dependsOn:
+     - app_detail_page_count_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/app_detail_page_count/export_day.sqoop ${job_params}
+
+ - name: export_app_detail_page_count_total_job
+   type: command
+   dependsOn:
+     - app_detail_page_count_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/app_detail_page_count/export_total.sqoop ${job_params}
+
+ - name: app_subscribe_label_job
+   type: command
+   dependsOn:
+     - events_type_log_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/app_subscribe_label/1.hive ${job_params}
+
+ - name: export_app_subscribe_label_job
+   type: command
+   dependsOn:
+     - app_subscribe_label_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/app_subscribe_label/export.sqoop ${job_params}
+
+
+ - name: app_page_stay_time_job
+   type: command
+   dependsOn:
+     - events_type_log_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/app_page_stay_time/1.hive ${job_params}
+
+ - name: export_app_page_stay_time_day_job
+   type: command
+   dependsOn:
+     - app_page_stay_time_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/app_page_stay_time/export_day.sqoop ${job_params}
+
+ - name: export_app_page_stay_time_total_job
+   type: command
+   dependsOn:
+     - app_page_stay_time_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/app_page_stay_time/export_total.sqoop ${job_params}
+
+ - name: export_app_column_page_stay_time_day_job
+   type: command
+   dependsOn:
+     - app_page_stay_time_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/app_page_stay_time/export_column_day.sqoop ${job_params}
+
+ - name: export_app_column_page_stay_time_total_job
+   type: command
+   dependsOn:
+     - app_page_stay_time_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/app_page_stay_time/export_column_total.sqoop ${job_params}
+
+ - name: app_inlet_position_count_job
+   type: command
+   dependsOn:
+     - events_type_log_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/app_inlet_position_count/1.hive ${job_params}
+
+ - name: export_app_inlet_position_count_job
+   type: command
+   dependsOn:
+     - app_inlet_position_count_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/app_inlet_position_count/export.sqoop ${job_params}
+
+ - name: export_app_inlet_position_count2_job
+   type: command
+   dependsOn:
+     - app_inlet_position_count_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/app_inlet_position_count/export_position.sqoop ${job_params}
+
+ - name: app_album_rank_job
+   type: command
+   dependsOn:
+     - events_type_log_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/app_album_rank/1.hive ${job_params}
+
+ - name: export_app_album_play_rank_job
+   type: command
+   dependsOn:
+     - app_album_rank_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/app_album_rank/export_play.sqoop ${job_params}
+
+ - name: export_app_album_user_rank_job
+   type: command
+   dependsOn:
+     - app_album_rank_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/app_album_rank/export_user.sqoop ${job_params}
+
+ - name: app_video_rank_job
+   type: command
+   dependsOn:
+     - events_type_log_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/app_video_rank/1.hive ${job_params}
+
+ - name: export_app_video_play_rank_job
+   type: command
+   dependsOn:
+     - app_video_rank_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/app_video_rank/export_play.sqoop ${job_params}
+
+ - name: export_app_video_user_rank_job
+   type: command
+   dependsOn:
+     - app_video_rank_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/app_video_rank/export_user.sqoop ${job_params}
+
+ - name: update_area_to_user_job
+   type: command
+   dependsOn:
+     - app_increase_user_hive_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/update_area_to_user/1.hive ${job_params}
+
+ - name: export_update_area_to_user_job
+   type: command
+   dependsOn:
+     - update_area_to_user_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/update_area_to_user/export.sqoop ${job_params}
+
+ - name: app_album_content_type_job
+   type: command
+   dependsOn:
+     - events_type_log_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/app_album_content_type/1.hive ${job_params}
+
+ - name: export_app_album_content_type_job
+   type: command
+   dependsOn:
+     - app_album_content_type_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/app_album_content_type/export_day.sqoop ${job_params}
+
+
+ - name: app_online_order_job
+   type: command
+   dependsOn:
+     - events_type_log_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/app_online_order/day.hive ${job_params}
+
+ - name: export_app_online_order_job_job
+   type: command
+   dependsOn:
+     - app_online_order_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/app_online_order/export_day.sqoop ${job_params}
+
+ - name: area_online_order_job
+   type: command
+   dependsOn:
+     - events_type_log_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/area_online_order/1.hive ${job_params}
+
+ - name: export_area_online_order_job
+   type: command
+   dependsOn:
+     - area_online_order_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/area_online_order/export.sqoop ${job_params}
+
+ - name: import_backup_album_job
+   type: command
+   dependsOn:
+     - start_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/backup_content_from_mysql/album/importAlbum.sqoop ${job_params}
+
+ - name: backup_album_hive_job
+   type: command
+   dependsOn:
+     - import_backup_album_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/backup_content_from_mysql/album/backup_album.hive ${job_params}    
+ 
+ - name: import_backup_album_conentType_job
+   type: command
+   dependsOn:
+     - start_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/backup_content_from_mysql/album/importAlbumContentType.sqoop ${job_params}
+
+ - name: backup_album_contentType_hive_job
+   type: command
+   dependsOn:
+     - import_backup_album_conentType_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/backup_content_from_mysql/album/backup_contentType.hive ${job_params}    
+
+ - name: import_backup_album_label_job
+   type: command
+   dependsOn:
+     - start_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/backup_content_from_mysql/album/importAlbumLabel.sqoop ${job_params}
+
+ - name: backup_album_label_hive_job
+   type: command
+   dependsOn:
+     - import_backup_album_label_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/backup_content_from_mysql/album/backup_label.hive ${job_params}    
+
+ - name: import_backup_video_job
+   type: command
+   dependsOn:
+     - start_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/backup_content_from_mysql/album/import_video.sqoop ${job_params}
+
+ - name: backup_video_hive_job
+   type: command
+   dependsOn:
+     - import_backup_video_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/backup_content_from_mysql/album/backup_video.hive ${job_params}  
+
+ - name: import_backup_column_job
+   type: command
+   dependsOn:
+     - start_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/backup_content_from_mysql/column/import_column.sqoop ${job_params}
+
+ - name: backup_column_hive_job
+   type: command
+   dependsOn:
+     - import_backup_column_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/backup_content_from_mysql/column/backup_column.hive ${job_params}  
+
+
+ - name: import_backup_price_job
+   type: command
+   dependsOn:
+     - start_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/backup_content_from_mysql/price_product/import_price.sqoop ${job_params}
+
+ - name: backup_price_hive_job
+   type: command
+   dependsOn:
+     - import_backup_price_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/backup_content_from_mysql/price_product/backup_price.hive ${job_params}  
+
+ - name: app_draw_prize_count_job
+   type: command
+   dependsOn:
+     - events_type_log_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/app_draw_prize/1.hive ${job_params}
+
+ - name: export_app_draw_prize_count_job
+   type: command
+   dependsOn:
+     - app_draw_prize_count_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/app_draw_prize/export.sqoop ${job_params}
+
+ - name: export_app_prize_detail_count_job
+   type: command
+   dependsOn:
+     - app_draw_prize_count_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=day/app_draw_prize/export_detail.sqoop ${job_params}

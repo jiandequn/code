@@ -1,0 +1,15 @@
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.groupby.orderby.position.alias=true; -- 启用别名对于groupby和orderby
+-- 需求 ：统计周期内，访问详情页的用户数和次数
+--按日统计，详情页访问用户数和访问次数
+insert overwrite table app_detail_page_count_day
+select concat(y,'-',m,'-',d) as t_date,parent_column_id,user_type,count(distinct user_id) as user_count,count(1) as visit_count from events_type_log
+ where events_type ='PAGE_ALBUM_DETAILS' and concat(y,'-',m,'-',d)<'${endDate}' and concat(y,'-',m,'-',d)>='${startDate}'
+ group by 1,2,3;
+
+-- 统计周期内，详情页访问用户数和访问次数
+insert overwrite table app_detail_page_count
+select concat(y,'-',m,'-',d) as t_date,parent_column_id,user_type,count(distinct user_id) as user_count,count(1) as visit_count from events_type_log
+ where events_type ='PAGE_ALBUM_DETAILS' and concat(y,'-',m,'-',d)<'${endDate}'
+ group by 1,2,3;

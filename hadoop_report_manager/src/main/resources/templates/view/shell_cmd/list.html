@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+	  xmlns:th="http://www.thymeleaf.org">
+<head th:replace="header :: common_header(~{::title},~{::link},~{})">
+	<meta charset="UTF-8">
+</head>
+<body>
+<div class="easyui-panel" style="margin: 1px;"  fit="true">
+	<div id="contentToolbar" fit="true">
+		<form class="bs-example bs-example-form" role="form">
+			<div class="row">
+				<div class="col-lg-3">
+					<div class="input-group col-lg-2">
+						<span class="input-group-addon col-lg">开始日期</span>
+						<input id="startDate" type="text" class="easyui-datebox form-control col-lg-1" placeholder="开始日期">
+					</div>
+				</div>
+				<div class="col-lg-3">
+					<div class="input-group col-lg-2">
+						<span class="input-group-addon col-lg">结束日期</span>
+						<input id="endDate" type="text" class="easyui-datebox form-control  col-lg-1" placeholder="结束日期">
+					</div>
+				</div>
+				<div class="col-lg-1">
+					<div style='height:25px;border-left:1px solid #ccc;border-right:1px solid #fff;display:inline;margin: 0px 6px'></div>
+					<a class="easyui-linkbutton" id="execContent" iconCls="icon-search" plain="true" onclick="execShell();">执行</a>
+			     </div>
+			</div>
+	   </form>
+	</div>
+	<table id="content_table" fit="true"></table>
+</div>
+
+<script type="text/javascript" src="/js/report/shellCmd.js?v="+ Math.round(Math.random()*1000)></script>
+</body>
+</html>

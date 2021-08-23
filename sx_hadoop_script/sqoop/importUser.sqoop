@@ -1,0 +1,14 @@
+# query hive不支持- -create-hive-table
+sqoop import \
+--connect jdbc:mysql://192.168.15.50:3306/sx_hadoop?useUnicode=true \
+--username kfyw \
+--password 123456 \
+--table user_info \
+--driver com.mysql.jdbc.Driver \
+--fields-terminated-by '\t' \
+--delete-target-dir \
+--num-mappers 1 \
+--hive-import \
+--hive-database yn_hadoop \
+--hive-table user_info \
+--hive-overwrite

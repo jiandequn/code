@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="layout :: htmlhead" th:with="title='后台管理'">
+</head>
+<style type="text/css">
+    .container{
+        width: 420px;
+        height: 350px;
+        min-height: 350px;
+        max-height: 350px;
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        margin: auto;
+        padding: 20px;
+        z-index: 130;
+        border-radius: 8px;
+        background-color: #fff;
+        box-shadow: 0 3px 18px rgba(100, 0, 0, .5);
+        font-size: 16px;
+    }
+    .close{
+        background-color: white;
+        border: none;
+        font-size: 18px;
+        margin-left: 410px;
+        margin-top: -10px;
+    }
+
+    .layui-input{
+        border-radius: 5px;
+        width: 300px;
+        height: 40px;
+        font-size: 15px;
+    }
+    .layui-form-item{
+        margin-left: -20px;
+    }
+    #logoid{
+        margin-top: -16px;
+        padding-left:150px;
+        padding-bottom: 15px;
+    }
+    .layui-btn{
+        margin-left: -50px;
+        border-radius: 5px;
+        width: 350px;
+        height: 40px;
+        font-size: 15px;
+    }
+    .verity{
+        width: 120px;
+    }
+    .font-set{
+        font-size: 13px;
+        text-decoration: none;
+        margin-left: 120px;
+    }
+    a:hover{
+        text-decoration: underline;
+    }
+
+</style>
+<body  style="width: 100%;height:auto;background: url('images/bkLogo.png') no-repeat;background-size: 100%;">
+<form id="useLogin" class="layui-form" action="" method="post" lay-filter="loginFilter">
+    <div class="container">
+        <!--<button class="close" title="关闭">X</button>-->
+        <div class="layui-form-mid layui-word-aux">   系统登录
+            <!--<img id="logoid" src="'images/logo.png" height="35">-->
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">用户名</label>
+            <div class="layui-input-block">
+                <input type="text" name="username" id="username" required  lay-verify="required" placeholder="请输入用户名" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">密 &nbsp;&nbsp;码</label>
+            <div class="layui-input-inline">
+                <input type="password" name="password" id="password" required lay-verify="required" placeholder="请输入密码" autocomplete="off" class="layui-input">
+            </div>
+             <!--<div class="layui-form-mid layui-icon-ok">辅助文字</div>-->
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">验证码</label>
+            <div class="layui-input-inline">
+                <input id="code" type="text" name="code" required  lay-verify="required" placeholder="请输入验证码" autocomplete="off" class="layui-input verity">
+            </div>
+             <!--<div class="layui-form-mid layui-word-aux">辅助文字</div>-->
+            <div class="layui-input-inline" style="width: 120px;">
+                <!--<canvas id="canvas" width="120" height="38"></canvas>-->
+                <img id="randCodeImage" src="canvas/randCodeImage" width="120" height="38"  />
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">记住我</label>
+            <div class="layui-input-block">
+                <input type="checkbox" th:checked="${rememberMe}" lay-skin="switch" lay-text="ON|OFF" name="rememberMe" lay-filter="rememberMeFilter">
+                <!--<input type="checkbox" name="rememberMe" lay-skin="primary"/>-->
+            </div>
+        </div>
+        <!--<div class="layui-form-item" style="margin-top: -20px;">-->
+            <!--<label class="layui-form-label"></label>-->
+            <!--<div class="layui-inline">-->
+                <!--<input type="checkbox" name="rememberMe" lay-skin="primary"  title="记住我"/>-->
+            <!--</div>-->
+        <!--</div>-->
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button id="loginBtn"  class="layui-btn" lay-submit lay-filter="login">登陆</button>
+            </div>
+        </div>
+        <a href="" class="font-set">忘记密码?</a>   <a href="" class="font-set">立即注册</a>
+    </div>
+</form>
+<!--<script type="text/javascript" src="layui/layui.js"></script>-->
+<script>
+    $(function(){
+        if(window !=top){
+            top.location.href=location.href;
+        }
+        layui.use(['form' ,'layer'], function() {
+            var form = layui.form;
+            var layer = layui.layer;
+            form.on("submit(login)",function () {
+                login();
+                return false;
+            });
+//
+            var path=window.location.href;
+            if(path.indexOf("kickout")>0){
+                layer.alert("您的账号已在别处登录；若不是您本人操作，请立即修改密码！",function(){
+                    window.location.href="login";
+                });
+            }
+            //更新rememberMe状态
+            var rememberMe = $.cookie("rememberMe");
+            if(rememberMe){
+                form.val("loginFilter",{
+                    rememberMe:true
+                }) ;
+            }
+        });
+
+
+    })
+
+    function login(){
+        var flag=checkParams();
+        if(flag!=false){
+
+            $.post("login",$("#useLogin").serialize(),function(data){
+                console.log("data:"+data)
+                if(data.code=="1"){
+                    window.location.href="index";
+//                    layer.alert("登录成功",function () {
+//                        window.location.href="/home";
+//                    });
+                }else{
+                    reloadRandCodeImage();
+                    $("#code").val("");
+                    //$("#smsCode").val("");
+                    layer.alert(data.msg,function(){
+                        layer.closeAll();//关闭所有弹框
+                        //关闭发送验证码按钮倒计时
+                    });
+                }
+            });
+        }else{
+            reloadRandCodeImage();
+        }
+    }
+
+    function checkParams(){
+        //  校验
+        var username=$("#username").val();
+        var password=$("#password").val();
+        var code=$("#code").val();
+        if("ok"!=ValidateUtils.checkUserName(username) || ''==password){
+            layer.alert("请您输入正确的用户名和密码");
+            return false;
+        }
+        if("ok"!=ValidateUtils.checkPicCode(code)){
+            //tips层-右
+            layer.tips(ValidateUtils.checkPicCode(code), '#randCodeImage', {
+                tips: [2, '#78BA32'], //还可配置颜色
+                tipsMore: true
+            });
+            return false;
+        }
+        if(!validateRandCode(code)){
+            //tips层-右
+            layer.tips("请您输入正确的验证码", '#randCodeImage', {
+                tips: [2, '#78BA32'], //还可配置颜色
+                tipsMore: true
+            });
+            return false;
+        }
+    }
+
+</script>
+<script type="text/javascript">
+    reloadRandCodeImage();
+    $('#randCodeImage').click(function(){
+        reloadRandCodeImage();
+    });
+    function reloadRandCodeImage() {
+        var date = new Date();
+        var img = document.getElementById("randCodeImage");
+        img.src='canvas/randCodeImage?a=' + date.getTime();
+    }
+    function validateRandCode(randCode){
+        var flag = false;
+//
+        $.ajax({
+            type: "GET",
+            url: "canvas/validateRandCode?randCode="+randCode,
+            async:false,
+          //  dataType: "json",
+            success: function(data){
+                console.log(data);
+                if(data == "success"){
+                    flag = true;
+                }else{
+                    $("#code").val("");
+                    $("#code").focus();
+                }
+            },
+            error:function(e){
+                console.log(e);
+            }
+        });
+        return flag;
+    }
+    function getCookie(key) {
+        var arr1 = document.cookie.split("; ");//由于cookie是通过一个分号+空格的形式串联起来的，所以这里需要先按分号空格截断,变成[name=Jack,pwd=123456,age=22]数组类型；
+        for (var i = 0; i < arr1.length; i++) {
+            var arr2 = arr1[i].split("=");//通过=截断，把name=Jack截断成[name,Jack]数组；
+            if (arr2[0] == key) {
+                return decodeURI(arr2[1]);
+            }
+        }
+    }
+</script>
+</body>
+</html>

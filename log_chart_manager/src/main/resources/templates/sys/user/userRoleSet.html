@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head th:include="layout :: htmlhead" th:with="title='用户管理'"></head>
+<script type="text/javascript" th:src="@{/js/sys/common.js}"></script>
+<fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
+    <legend th:text="'关联用户['+${user.userName}+']的角色'"></legend>
+</fieldset>
+<div id="userRoleSet" class="demo-transfer"></div>
+<script th:inline="javascript">
+    var user=/*[[${user==null ?'':user}]]*/;
+    var userRoles =/*[[${userRoles}]]*/;
+    var roles =/*[[${roles}]]*/;
+</script>
+<script type="text/javascript">
+    $(function() {
+        layui.use(['transfer', 'layer', 'util'], function() {
+            layer=layui.layer;
+            transfer=layui.transfer;
+            var util = layui.util;
+            transfer.render({
+                elem: '#userRoleSet'
+                ,id:"userRoleSetId"
+                ,parseData: function(res){
+                    return {
+                        "value": res.id //数据值
+                        ,"title": res.roleName //数据标题
+                        ,"disabled": res.disabled  //是否禁用
+                        ,"checked": res.checked //是否选中
+                    }
+                }
+                ,data: roles    //初始化数据
+                ,value: userRoles //初始右侧数据
+                ,title: ['可选择角色', '已选择角色']
+                ,showSearch: true
+            })
+        });
+    });
+    function setRoleToUser(){
+        var roleData = transfer.getData('userRoleSetId');
+        var roleIds = new Array();
+        for(var i=0;i<roleData.length;i++){
+            roleIds.push(roleData[i].value);
+        }
+        //校验是否授权
+        var roleIdsStr = roleIds.join(",");
+        layer.confirm('您确定要重置用户['+user.userName+']的角色信息', {
+            btn: ['确认','返回'] //按钮
+        }, function(){
+            $.ajax({
+                type: "POST",
+                data: {"userId":user.id,"roleIds":roleIdsStr},
+                url: "../user-role/add",
+                success: function (data) {
+                    ajaxSucFunc(data,function(){
+                        layer.closeAll();
+                        parent.layer.closeAll();
+                    });
+                },
+                error: ajaxErrorFunc
+            });
+        }, function(){
+
+        });
+
+    }
+</script>
+</html>

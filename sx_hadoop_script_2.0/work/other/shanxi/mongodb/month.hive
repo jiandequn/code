@@ -1,0 +1,45 @@
+--月度播放用户数,点播次数,观看时长
+hive -e "
+use sx_mongo;
+set hive.groupby.orderby.position.alias=true; -- 启用别名对于groupby和orderby
+set hive.cli.print.header=true;  --将表头输出
+select concat(y,'-',m) as t_date,count(distinct mac,sn) as user_count,count(1) as play_count,
+round(sum(consume_time)/3600000,2) as play_time,round(sum(stay_duration)/3600,2) as stay_duration
+from sx_mongo_album_play_log group by 1 order by 1;
+        " | sed 's/[\t]/,/g'  > /home/app/mongo_log/report_tmp/month.csv
+
+--产品月度播放用户数，点播次数，观看时长
+hive -e "
+use sx_mongo;
+set hive.groupby.orderby.position.alias=true; -- 启用别名对于groupby和orderby
+set hive.cli.print.header=true;  --将表头输出
+ select * from(
+            select concat(y,'年',m,'月') as t_date,'广电聚视界' column_name,concat_ws('|',collect_set(column_id)) as column_ids,count(distinct mac,sn) as user_count,count(1) as play_count,
+round(sum(consume_time)/3600000,2) as play_time,round(sum(stay_duration)/3600,2) as stay_duration
+from sx_mongo_album_play_log where column_id in(38,77) group by 1
+union all
+  select concat(y,'年',m,'月') as t_date,'广电爆米花' column_name,concat_ws('|',collect_set(column_id))  as column_ids,count(distinct mac,sn) as user_count,count(1) as play_count,
+round(sum(consume_time)/3600000,2) as play_time,round(sum(stay_duration)/3600,2) as stay_duration
+from sx_mongo_album_play_log where column_id in(148,147,149,150,151,152,154,153) group by 1
+union all
+  select concat(y,'年',m,'月') as t_date,'4K专区' column_name,concat_ws('|',collect_set(column_id))  as column_ids,count(distinct mac,sn) as user_count,count(1) as play_count,
+round(sum(consume_time)/3600000,2) as play_time,round(sum(stay_duration)/3600,2) as stay_duration
+from sx_mongo_album_play_log where column_id in(36,82) group by 1
+union all
+  select concat(y,'年',m,'月') as t_date,'VIP' column_name,concat_ws('|',collect_set(column_id))  as column_ids,count(distinct mac,sn) as user_count,count(1) as play_count,
+round(sum(consume_time)/3600000,2) as play_time,round(sum(stay_duration)/3600,2) as stay_duration
+from sx_mongo_album_play_log where column_id in(79,76,78,120,81,80) group by 1
+union all
+  select concat(y,'年',m,'月') as t_date,'爆米花' column_name,concat_ws('|',collect_set(column_id))  as column_ids,count(distinct mac,sn) as user_count,count(1) as play_count,
+round(sum(consume_time)/3600000,2) as play_time,round(sum(stay_duration)/3600,2) as stay_duration
+from sx_mongo_album_play_log where column_id in(129,127,126,128,130,123) group by 1
+union all
+  select concat(y,'年',m,'月') as t_date,'OTT天天剧场' column_name,column_id as column_ids,count(distinct mac,sn) as user_count,count(1) as play_count,
+round(sum(consume_time)/3600000,2) as play_time,round(sum(stay_duration)/3600,2) as stay_duration
+from sx_mongo_album_play_log where column_id=108 group by 1,3
+) a order by t_date,column_name
+        " | sed 's/[\t]/,/g'  > /home/app/mongo_log/report_tmp/product_month.csv
+
+
+
+

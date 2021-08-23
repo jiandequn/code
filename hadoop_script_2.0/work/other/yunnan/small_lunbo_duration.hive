@@ -1,0 +1,39 @@
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.groupby.orderby.position.alias=true; -- 启用别名对于groupby和orderby
+set hive.vectorized.execution.enabled=false; --控制是否启用查询执行的向量模式
+
+-- 小窗口轮播播放时长
+insert overwrite table app_small_window_carousel_duration_week
+select  year(date_sub(next_day(concat(y,'-',m,'-',d),'MO'),4)) as y,weekofyear(concat(y,'-',m,'-',d)) as w,parent_column_id,user_type,count(distinct user_id) as user_count,sum(param['timePosition']) as duration from events_type_log
+ where events_type ='COLUMN_TYPE_SHORT_VIDEO_HISTORY_POINT' and concat(y,'-',m,'-',d)<'${endDate}' and concat(y,'-',m,'-',d)>='${startDate}'
+ group by 1,2,3,4;
+
+--COLUMN_TYPE_SHORT_VIDEO_HISTORY_POINT;新增短视频点播记录;parentColumnId=123311;creatorId=16;shortVideoId=285;operateType=add;timePosition=0
+create TEMPORARY table play_short_video_tmp as
+ select parent_column_id,param['shortVideoId'] as short_video_id from events_type_log
+ where events_type ='COLUMN_TYPE_SHORT_VIDEO_HISTORY_POINT' and concat(y,'-',m,'-',d)<'${endDate}' and concat(y,'-',m,'-',d)>='${startDate}'
+ group by 1,2;
+
+-- 轮播窗口各视频点播次数
+select concat(a.y,'-',a.m,'-',a.d) as t_date,a.parent_column_id,a.user_type,count(distinct a.user_id) as user_count,
+count(1) as play_count
+from events_type_log a
+inner join play_short_video_tmp b ON a.parent_column_id=b.parent_column_id and param['afterSpm'] rlike concat('123311.PAGE_YNGDJSJPB.128247.',b.short_video_id)
+ where events_type ='PAGE_ALBUM_DETAILS'
+  and concat(y,'-',m,'-',d)<'${endDate}' and concat(y,'-',m,'-',d)>='${startDate}'
+ group by 1,2,3;
+
+
+--轮播窗口小视频中专辑列表点播情况 按天
+
+select c.t_date,t.parent_column_id,t.album_id,d.album_name,t.short_video_id,s.name,t.user_count,t.play_count from (
+select concat(a.y,'-',a.m,'-',a.d) as t_date,a.parent_column_id,param['contentId'] as album_id,b.short_video_id,count(distinct user_id) as user_count,
+count(1) as play_count
+from events_type_log a
+inner join play_short_video_tmp b ON a.parent_column_id=b.parent_column_id and param['afterSpm'] rlike concat('123311.PAGE_YNGDJSJPB.128247.',b.short_video_id)
+ where events_type ='PAGE_ALBUM_DETAILS'
+  and concat(y,'-',m,'-',d)<'${endDate}' and concat(y,'-',m,'-',d)>='${startDate}'
+ group by 1,2,3,4) c
+ left join album d on d.album_id=c.album_id
+ left join short_video s on s.short_video_id=c.short_video_id

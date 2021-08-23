@@ -1,0 +1,20 @@
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.groupby.orderby.position.alias=true; -- 启用别名对于groupby和orderby
+set hive.vectorized.execution.enabled=false;
+
+--按周统计，在线统计抽奖用户数，次数,中奖用户数，中奖次数
+insert overwrite table app_draw_prize_count_week
+select y,w,user_type,parent_column_id,sum(draw_user_count) as draw_user_count,sum(draw_count) draw_count,sum(drawed_user_count) as drawed_user_count,sum(drawed_count) as drawed_count from (
+  select year(date_sub(next_day(concat(y,'-',m,'-',d),'MO'),4)) as y,weekofyear(concat(y,'-',m,'-',d)) as w,user_type,parent_column_id,0 as draw_user_count,0 as draw_count,count(distinct sn) as drawed_user_count,count(1) as drawed_count 
+ from events_type_log where events_type='LUCK_DRAW_RESULT' and concat(y,'-',m,'-',d)>='${startDate}'
+and concat(y,'-',m,'-',d)<'${endDate}' and param['result']='true' group by 1,2,3,4
+union all
+ select year(date_sub(next_day(concat(y,'-',m,'-',d),'MO'),4)) as y,weekofyear(concat(y,'-',m,'-',d)) as w,user_type,parent_column_id,count(distinct sn) as draw_user_count,count(1) as draw_count,0 as drawed_user_count,0 as drawed_count
+ from events_type_log where events_type='ACTIVITY_LUCK_DRAW' and concat(y,'-',m,'-',d)>='${startDate}'
+and concat(y,'-',m,'-',d)<'${endDate}' group by 1,2,3,4) a group by 1,2,3,4;
+
+--按周统计奖品详情信息统计数据
+insert overwrite table app_prize_detail_count_week
+ select year(date_sub(next_day(concat(y,'-',m,'-',d),'MO'),4)) as y,weekofyear(concat(y,'-',m,'-',d)) as w,user_type,parent_column_id,param['prizeId'] as prize_id,concat_ws('|',collect_set(param['prizeName'])) as prize_name,count(distinct sn) as drawed_user_count,count(1) as drawed_count
+ from events_type_log where events_type='LUCK_DRAW_RESULT'  and concat(y,'-',m,'-',d)>='${startDate}'and concat(y,'-',m,'-',d)<'${endDate}'  group by 1,2,3,4,5;

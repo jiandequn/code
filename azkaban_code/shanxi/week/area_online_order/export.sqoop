@@ -1,0 +1,21 @@
+sqoop eval \
+-Dmapreduce.job.queuename=${yarn_queue} \
+--connect "${mysql_url}?useUnicode=true&characterEncoding=utf-8" \
+--username ${mysql_username} \
+--password ${mysql_password} \
+--metadata-transaction-isolation-level 'TRANSACTION_REPEATABLE_READ' \
+--query "delete from area_online_order_count_week where (y>=YEAR(subdate('${startDate}',WEEKDAY('${startDate}')-3)) AND w >= WEEKOFYEAR('${startDate}')) AND (y<=YEAR(subdate('${endDate}',WEEKDAY('${endDate}') - 3)) AND w < WEEKOFYEAR('${endDate}'))"
+
+sqoop export \
+-Dmapreduce.job.queuename=${yarn_queue} \
+--connect "${mysql_url}?useUnicode=true&characterEncoding=utf-8" \
+--username ${mysql_username} \
+--password ${mysql_password} \
+--export-dir /${hive_province}/hive/reports/area_online_order/count/week \
+--table area_online_order_count_week \
+--columns y,w,user_type,area_code,product_id,product_name,product_type,third_product_code,present_price,user_count,order_count,amount \
+--update-mode allowinsert \
+--input-null-string '\\N'  \
+--input-null-non-string '\\N' \
+--input-fields-terminated-by '\t' \
+--outdir ${sqoop_outdir}/mr_java

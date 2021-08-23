@@ -1,0 +1,35 @@
+spring:
+  thymeleaf:
+    cache: false
+    encoding: UTF-8
+    prefix: classpath:/templates/
+    suffix: html
+    mode: HTML5    ## 模板格式
+    content-type: text/html
+#logging:
+#  config: classpath:/logback.xml
+#  level:
+#    root: WARN     #root日志以WARN级别输出
+#    org:
+#      springframework:
+#        web:  DEBUG     #springframework.web日志以DEBUG级别输出
+
+#mybatis:
+#  configuration:
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+mybatis-plus:
+  mapper-locations: classpath*:mapper/*/*.xml
+  type-aliases-package: com.ppfuns.*.entity
+  configuration:
+    map-underscore-to-camel-case: true
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      db-type: MYSQL
+      id-type: 0
+logging:
+  level:
+    com:
+      ppfuns:
+        report:
+          mapper: debug

@@ -1,0 +1,16 @@
+use yn_hadoop;
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set mapreduce.map.memory.mb = 4096;
+set mapreduce.reduce.memory.mb = 4096;
+set mapreduce.map.java.opts=-Xmx3278m;
+set mapreduce.reduce.java.opts=-Xmx3278m;
+set hive.exec.parallel=true;
+set hive.exec.parallel.thread.number=16;   # 并行度
+set mapreduce.job.reduce.slowstart.completedmaps=0.01;
+
+-- insert overwrite table events_type_log partition(eventsType,y,m,d) select mac,sn,userId,userType,createTime,str_to_map(remark,';','=') as data,eventsType,y,m,d  from yn_logs;
+
+
+insert into events_type_log partition(eventsType,y,m,d) select mac,sn,userId,userType,createTime,str_to_map(remark,';','=') as data,eventsType,substr(createTime,1,4) y,substr(createTime,6,2) m,substr(createTime,9,2) d  from yn_logs y
+inner join clean_user c on c.user_id != y.userId

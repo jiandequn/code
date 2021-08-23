@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+
+
+<configuration>
+        <property>
+                <name>dfs.support.append</name>
+                <value>true</value>
+                <description>允许数据追加</description>
+        </property>
+        <property>
+                <name>dfs.permissions.enabled</name>
+                <value>false</value>
+                <description>禁用权限检查</description>
+        </property>
+	<property>
+                <name>dfs.webhdfs.enabled</name>
+                <value>true</value>
+        </property>
+        <property>
+                <name>dfs.namenode.name.dir</name>
+                <value>/data/hadoop_d/name</value>
+		<description> namenode 存放name table(fsimage)本地目录</description>
+        </property>
+        <property>
+                <name>dfs.namenode.edits.dir</name>
+                <value>${dfs.namenode.name.dir}</value>
+                <description>namenode存放 transaction file(edits)本地目录</description>
+        </property>
+        <property>
+                <name>dfs.datanode.data.dir</name>
+                <value>/data/hadoop_d/data</value>
+                <description>datanode存放block本地目录（需要修改）</description>
+        </property>
+	        <property>
+                <name>dfs.replication</name>
+                <value>2</value>
+                <description>文件副本个数，默认为3</description>
+        </property>
+	<!-- 块大小 （默认） -->
+        <property>
+                <name>dfs.blocksize</name>
+                <value>268435456</value>
+                <description>块大小256M</description>
+        </property>
+        <!--======================================================================= -->
+        <!--HDFS高可用配置 -->
+        <!--nameservices逻辑名 -->
+        <property>
+                <name>dfs.nameservices</name>
+                <value>hadoop-cluster</value>
+        </property>
+        <property>
+                <!--设置NameNode IDs 此版本最大只支持两个NameNode -->
+                <name>dfs.ha.namenodes.hadoop-cluster</name>
+                <value>hadoop-01,hadoop-02</value>
+        </property>
+        <!-- Hdfs HA: dfs.namenode.rpc-address.[nameservice ID] rpc 通信地址 -->
+        <property>
+                <name>dfs.namenode.rpc-address.hadoop-cluster.hadoop-01</name>
+                <value>hadoop-01:9000</value>
+        </property>
+        <property>
+                <name>dfs.namenode.rpc-address.hadoop-cluster.hadoop-02</name>
+                <value>hadoop-02:9000</value>
+        </property>
+        <!-- Hdfs HA: dfs.namenode.http-address.[nameservice ID] http 通信地址 -->
+        <property>
+                <name>dfs.namenode.http-address.hadoop-cluster.hadoop-01</name>
+                <value>hadoop-01:9870</value>
+        </property>
+        <property>
+                <name>dfs.namenode.http-address.hadoop-cluster.hadoop-02</name>
+                <value>hadoop-02:9870</value>
+        </property>
+        <!--==================Namenode editlog同步 ============================================ -->
+        <!--保证数据恢复 -->
+        <property>
+                <name>dfs.journalnode.http-address</name>
+                <value>0.0.0.0:8480</value>
+        </property>
+        <property>
+                <name>dfs.journalnode.rpc-address</name>
+                <value>0.0.0.0:8485</value>
+        </property>
+        <property>
+                <name>dfs.namenode.shared.edits.dir</name>
+                <value>qjournal://hadoop-03:8485;hadoop-04:8485;hadoop-05:8485/hadoop-cluster</value>
+        </property>
+	<!-- 指定JournalNode在本地磁盘存放数据的位置 -->
+        <property>
+                <name>dfs.journalnode.edits.dir</name>
+                <value>/data/hadoop_d/data/hdfs/journalnode</value>
+        </property>
+	<!-- 配置失败自动切换实现方式 -->
+        <property>
+                <name>dfs.client.failover.proxy.provider.hadoop-cluster</name>
+                <value>org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider</value>
+        </property>
+	<!-- 配置隔离机制方法，多个机制用换行分割，即每个机制暂用一行-->
+        <property>
+                <name>dfs.ha.fencing.methods</name>
+                <value>sshfence</value>
+        </property>
+	<!-- 使用sshfence隔离机制时需要ssh免登陆 -->
+        <property>
+                <name>dfs.ha.fencing.ssh.private-key-files</name>
+                <value>/home/hadoop/.ssh/id_rsa</value>
+        </property>
+	<!-- 配置sshfence隔离机制超时时间 -->
+        <property>
+                <name>dfs.ha.fencing.ssh.connect-timeout</name>
+                <value>30000</value>
+                <description>配置sshfence隔离机制超时时间</description>
+        </property>
+        <!--============================zookeeper=============================-->
+	<!--开启基于Zookeeper及ZKFC进程的自动备援设置,监视进程是否死掉 -->
+        <property>
+                <name>dfs.ha.automatic-failover.enabled</name>
+                <value>true</value>
+        </property>
+        <property>
+                <name>ha.zookeeper.quorum</name>
+                <value>zookeeper-01:2181,zookeeper-02:2181,zookeeper-03:2181</value>
+        </property>
+        <property>
+                <name>ha.zookeeper.session-timeout.ms</name>
+                <value>30000</value>
+                <description>ms</description>
+        </property>
+</configuration>

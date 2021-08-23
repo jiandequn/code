@@ -1,0 +1,17 @@
+set hive.exec.parallel=true; 
+insert overwrite table t_price_product
+select t.product_id,t.product_name,t.third_code,t.third_product_code,t.original_price,t.present_price,t.product_type from t_price_product a
+inner join t_price_product_tmp t on t.product_id=a.product_id
+union all
+select  t.product_id,t.product_name,t.third_code,t.third_product_code,t.original_price,t.present_price,t.product_type from t_price_product_tmp t
+left join t_price_product a on a.product_id=t.product_id
+where a.product_id is null
+union all
+select  t.product_id,t.product_name,t.third_code,t.third_product_code,t.original_price,t.present_price,t.product_type from t_price_product t
+left join t_price_product_tmp a on a.product_id=t.product_id
+where a.product_id is null;
+
+
+
+
+

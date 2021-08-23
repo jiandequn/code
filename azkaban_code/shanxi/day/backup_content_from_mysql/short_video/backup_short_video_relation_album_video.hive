@@ -1,0 +1,14 @@
+--交集+新增的+已经删除的
+insert overwrite table short_video_relation_album_video
+select t.short_video_id,t.creator_id,t.album_id,t.video_id from short_video_relation_album_video a
+inner join short_video_relation_album_video_tmp t on t.short_video_id=a.short_video_id and t.creator_id=a.creator_id and t.album_id=a.album_id and t.video_id=a.video_id
+union all
+select  t.short_video_id,t.creator_id,t.album_id,t.video_id from short_video_relation_album_video_tmp t
+left join short_video_relation_album_video a on a.short_video_id=t.short_video_id and a.creator_id=t.creator_id and a.album_id=t.album_id and a.video_id=t.video_id
+where a.short_video_id is null
+union all
+select a.short_video_id,a.creator_id,a.album_id,a.video_id from short_video_relation_album_video a
+left join short_video_relation_album_video_tmp t on t.short_video_id=a.short_video_id and t.creator_id=a.creator_id and t.album_id=a.album_id and t.video_id=a.video_id
+where t.short_video_id is null;
+
+

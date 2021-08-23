@@ -1,0 +1,21 @@
+---
+config:
+  user.to.proxy: hadoop
+  failure.emails: noreply@foo.com
+
+nodes:
+ - name: start_job
+   type: command
+   config:
+      command: echo '我要开始了初始化脚本了。。。'
+
+
+
+ - name: init_hive_table_job
+   type: command
+   dependsOn:
+     - start_job
+   config:
+     command: bash ./init_hive/init_table.sh
+
+

@@ -1,0 +1,14 @@
+sqoop export \
+-Dmapreduce.job.queuename=${yarn_queue} \
+--connect "${mysql_url}?useUnicode=true&characterEncoding=utf-8" \
+--username ${mysql_username} \
+--password ${mysql_password} \
+--export-dir /${hive_province}/hive/reports/app/label/subscribe_count/total \
+--table app_subscribe_label_count \
+--columns t_date,parent_column_id,label_id,label_name,subscribe_count \
+--update-key t_date,parent_column_id,label_id \
+--update-mode allowinsert \
+--input-null-string '\\N'  \
+--input-null-non-string '\\N' \
+--input-fields-terminated-by '\t' \
+--outdir ${sqoop_outdir}/mr_java

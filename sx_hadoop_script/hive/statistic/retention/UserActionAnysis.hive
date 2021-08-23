@@ -1,0 +1,21 @@
+use yn_hadoop;
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+
+
+--媒资收藏排行前10
+--用户收藏记录操作（新增和删除）信息 opCount 1表示新增，-1表示取消 存储每日的信息好跟踪
+insert overwrite table bookmark_day partition(t_date)
+select data["parent_column_id"] as parent_column_id,user_type,user_id as user_id,if(data["operateType"]='add',1,-1) as opCount,data["contentId"] as content_id,to_unix_tStamp(create_time) as time_stamp,concat(y,'-',m,'-',d) as t_date from events_type_log
+where events_type ='operateBookMark' and data["operateType"] in('add','del') and concat(y,'-',m,'-',d)>='${startDate}' and concat(y,'-',m,'-',d)<='${endDate}';
+
+-- 专区媒资收藏排行前30的
+select parent_column_id,content_id,sum(opCount) as num from bookmark_day group by parent_column_id,content_id order by num desc limit 30;
+
+--搜索媒资详情
+insert overwrite table album_search_detail_day partition(t_date)
+select data["parent_column_id"] as parent_column_id,user_type,user_id, data["contentId"] as content_id,to_unix_tStamp(createtime) as tStamp,concat(y,'-',m,'-',d) as tdate from events_type_log
+where events_type ='operationDetails' and data["afterSpm"] like '%SEARCH%' and concat(y,'-',m,'-',d)>='${startDate}' and concat(y,'-',m,'-',d)<='${endDate}';
+
+--专区媒资搜索排行榜30
+select parent_column_id,content_id,count(1) as search_count from album_search_detail_day group by parent_column_id,content_id order by search_count desc limit 30;

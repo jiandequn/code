@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head th:include="layout :: htmlhead" th:with="title='区域新增用户占比'"></head>
+<form id="searchForm" class="layui-form layui-form-pane" method="post" action="" style="margin-top: 20px;">
+    <div class="layui-form-item">
+        <label class="layui-form-label">专区</label>
+        <div class="layui-input-inline">
+            <select id="parentColumnId" name="parentColumnId" lay-verify="required">
+            </select>
+        </div>
+        <label class="layui-form-label">时间</label>
+        <div class="layui-input-inline" style="width: 175px;">
+            <input name="startDate" id="insertTimeStart" placeholder="yyyy-MM-dd" autocomplete="off"
+                   class="layui-input" type="text"/>
+        </div>
+        <div class="layui-form-mid">-</div>
+        <div class="layui-input-inline" style="width: 175px;">
+            <input name="endDate" id="insertTimeEnd" placeholder="yyyy-MM-dd" autocomplete="off"
+                   class="layui-input" type="text"/>
+        </div>
+        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        <button class="layui-btn" lay-submit="" lay-filter="searchSubmit">查询</button>
+
+    </div>
+</form>
+<hr class="layui-bg-black"/>
+<div id="container" style="min-width:400px;min-height:600px"></div>
+<div style="display:none;" id="currentUser">
+    <shiro:principal property="id"></shiro:principal>
+</div>
+<script type="text/javascript" th:src="@{/js/report/common.js}"></script>
+<script type="text/javascript" th:src="@{/highcharts/highcharts.js}"></script>
+<script th:src="@{/js/dateUtils.js}"></script>
+<script th:src="@{/highcharts/modules/exporting.js}"></script>
+<script th:src="@{/highcharts/highcharts-zh_CN.js}"></script>
+<script th:src="@{/highcharts/modules/highcharts-more.js}"></script>
+<script>
+    $(function () {
+        /**
+         * 为了让多个图表的提示框即十字准星线能够联动，这里绑定多个图表的附件 dom 的鼠标事件进行联动
+         */
+        $('#container').bind('mousemove touchmove touchstart', function (e) {
+            var chart,
+                    point,
+                    i,
+                    event;
+            for (i = 0; i < Highcharts.charts.length; i = i + 1) {
+                chart = Highcharts.charts[i];
+                event = chart.pointer.normalize(e.originalEvent); // Find coordinates within the chart
+                point = chart.series[0].searchPoint(event, true); // Get the hovered point
+                if (point) {
+                    point.highlight(e);
+                }
+            }
+        });
+        /**
+         * 重写内部的方法， 这里是将提示框即十字准星的隐藏函数关闭
+         */
+        Highcharts.Pointer.prototype.reset = function () {
+            return undefined;
+        };
+        /**
+         * 高亮当前的数据点，并设置鼠标滑动状态及绘制十字准星线
+         */
+        Highcharts.Point.prototype.highlight = function (event) {
+            this.onMouseOver(); // 显示鼠标激活标识
+            this.series.chart.tooltip.refresh(this); // 显示提示框
+            this.series.chart.xAxis[0].drawCrosshair(event, this); // 显示十字准星线
+        };
+        /**
+         * 同步缩放效果，即当一个图表进行了缩放效果，其他图表也进行缩放
+         */
+        function syncExtremes(e) {
+            var thisChart = this.chart;
+            if (e.trigger !== 'syncExtremes') {
+                Highcharts.each(Highcharts.charts, function (chart) {
+                    if (chart !== thisChart) {
+                        if (chart.xAxis[0].setExtremes) {
+                            chart.xAxis[0].setExtremes(e.min, e.max, undefined, false, { trigger: 'syncExtremes' });
+                        }
+                    }
+                });
+            }
+        }
+        // 获取 JSON 数据，数据文件地址：
+        $.getJSON('https://data.jianshukeji.com/jsonp?filename=json/activity.json&callback=?', function (activity) {
+            $.each(activity.datasets, function (i, dataset) {
+                // 添加 X 数据
+                dataset.data = Highcharts.map(dataset.data, function (val, j) {
+                    return [activity.xData[j], val];
+                });
+                $('<div class="chart">')
+                        .appendTo('#container')
+                        .highcharts({
+                            chart: {
+                                marginLeft: 40, // Keep all charts left aligned
+                                spacingTop: 20,
+                                spacingBottom: 20,
+                                zoomType: 'x'
+                            },
+                            title: {
+                                text: dataset.name,
+                                align: 'left',
+                                margin: 0,
+                                x: 30
+                            },
+                            credits: {
+                                enabled: false
+                            },
+                            legend: {
+                                enabled: false
+                            },
+                            xAxis: {
+                                crosshair: true,
+                                events: {
+                                    setExtremes: syncExtremes
+                                },
+                                labels: {
+                                    format: '{value} km'
+                                }
+                            },
+                            yAxis: {
+                                title: {
+                                    text: null
+                                }
+                            },
+                            tooltip: {
+                                positioner: function () {
+                                    return {
+                                        x: this.chart.chartWidth - this.label.width, // right aligned
+                                        y: -1 // align to title
+                                    };
+                                },
+                                borderWidth: 0,
+                                backgroundColor: 'none',
+                                pointFormat: '{point.y}',
+                                headerFormat: '',
+                                shadow: false,
+                                style: {
+                                    fontSize: '18px'
+                                },
+                                valueDecimals: dataset.valueDecimals
+                            },
+                            series: [{
+                                data: dataset.data,
+                                name: dataset.name,
+                                type: dataset.type,
+                                color: Highcharts.getOptions().colors[i],
+                                fillOpacity: 0.3,
+                                tooltip: {
+                                    valueSuffix: ' ' + dataset.unit
+                                }
+                            }]
+                        });
+            });
+        });
+    });
+</script>
+<script type="text/javascript">
+    var productColumnArr = initProductColumnSelect("parentColumnId");
+    layui.use(['form','laydate'], function(){
+        var form = layui.form;
+        var laydate = layui.laydate;
+        laydate.render({
+            elem: '#insertTimeStart'
+        });
+        laydate.render({
+            elem: '#insertTimeEnd'
+        });
+        form.render("select");
+        form.on('submit(searchSubmit)', function(data){
+            chartFunc()
+            return false;
+        });
+
+    });
+    function chartFunc() {
+        var parentColumnId = $('#parentColumnId').find("option:selected").val();
+        var parentColumnName = $('#parentColumnId').find("option:selected").text();
+        $.ajax({
+            type: "GET",
+            data: $("#searchForm").serialize(),
+            url: "chart/list",
+            success: function (result) {
+                var titleText = parentColumnName;
+                if (parentColumnId == '') {
+                    titleText = "周新访问用户数据(不分专区)";
+                } else {
+                    titleText = "<div style='text-shadow: 10px 10px 50px #000;'>" + parentColumnName + "</div>" + "周访问用户数据";
+                }
+
+            }
+        });
+    }
+    chartFunc();
+</script>
+</html>

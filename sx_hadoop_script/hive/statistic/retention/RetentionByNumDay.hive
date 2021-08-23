@@ -1,0 +1,18 @@
+use yn_hadoop;
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+
+-- 计算连续N日留存用户数RetentionByNumDay
+-- visit_user_page_day
+insert  overwrite table  add_retention_count_day partition(t_date)
+select a.t_date,a.parent_column_id,a.userType from(select '${startDate}' as tDate, parent_column_id,userType,user_id from visit_user_page_day where concat(y,'-',m,'-',d)>='${startDate}' and concat(y,'-',m,'-',d)<='${endDate}'
+group by parent_column_id,userType,user_id  having datediff('${endDate}','${startDate}') = count(1)
+) a group by a.t_date,a.parent_column_id,a.user_type
+
+
+
+
+-- select concat(a.y,'-',a.m,'-',a.d), a.parent_column_id,a.user_type,a.user_id from visit_user_page_day a
+-- inner join visit_user_page_day b on b.parent_column_id=a.parent_column_id and b.user_type=a.user_type and b.user_id=a.user_id
+-- where concat(b.y,'-',b.m,'-',b.d)>concat(a.y,'-',a.m,'-',a.d) and concat(b.y,'-',b.m,'-',b.d)<date_add(concat(a.y,'-',a.m,'-',a.d),2) and concat(a.y,'-',a.m,'-',a.d)>='2020-04-01' and concat(a.y,'-',a.m,'-',a.d)<='2020-04-05'
+-- group by  concat(a.y,'-',a.m,'-',a.d), a.parent_column_id,a.user_type,a.user_id having count(1) = datediff('2020-04-05','2020-04-01')

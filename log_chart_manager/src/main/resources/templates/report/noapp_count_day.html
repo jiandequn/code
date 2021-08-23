@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head th:include="layout :: htmlhead" th:with="title='所有专区统计'"></head>
+<form id="searchForm" class="layui-form layui-form-pane" method="post" action="" style="margin-top: 20px;"
+      lay-filter="searchFormFilter">
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">用户类型</label>
+            <div class="layui-input-inline">
+                <select id="userType" name="userType" lay-verify="required">
+                    <option label="OTT" th:selected="${ppfuns.userType=='OTT'}" >OTT</option>
+                    <option label="VOD" th:selected="${ppfuns.userType=='VOD'}">VOD</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">时间</label>
+            <div class="layui-input-inline" style="width: 175px;">
+                <input name="startDate" id="insertTimeStart" placeholder="yyyy-MM-dd" autocomplete="off"
+                       class="layui-input" type="text"/>
+            </div>
+            <div class="layui-form-mid">-</div>
+            <div class="layui-input-inline" style="width: 175px;">
+                <input name="endDate" id="insertTimeEnd" placeholder="yyyy-MM-dd" autocomplete="off"
+                       class="layui-input" type="text"/>
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">统计类型</label>
+            <div class="layui-input-inline" style="width: 300px;">
+                <div id="countField" style="width: 300px; "></div>
+            </div>
+        </div>
+        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        <button id="searchSubmit" class="layui-btn" lay-submit="" lay-filter="searchSubmit">查询</button>
+    </div>
+</form>
+<button shiro:hasPermission="noapp_count:update"  id="convertData" class="layui-btn" onclick="convertDataFunc();">数据生成</button>
+<button id="xAixsStypeStyle" class="layui-btn" style="display:none;">样式选择</button>
+<div id="convertDataPanel" class="layer_self_wrap" style="width:500px;display:none;">
+    <form id="convertDataForm" class="layui-form layui-form-pane" method="post" action="" style="margin-top: 20px;" lay-filter="convertDataFormFilter">
+        <div class="layui-form-item">
+            <label class="layui-form-label">时间</label>
+            <div class="layui-input-inline" style="width: 250px;">
+                <input name="startDate" id="insertTimeStart2" placeholder="yyyy-MM-dd" autocomplete="off"
+                       class="layui-input" type="text"/>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block" style="margin-left: 10px;">
+                <button class="layui-btn" lay-submit="" lay-filter="convertDataSubmit">提交</button>
+            </div>
+        </div>
+    </form>
+</div>
+<hr class="layui-bg-black"/>
+<div class="layui-tab layui-tab-card" lay-filter="reportTab">
+    <ul class="layui-tab-title">
+        <li class="layui-this">表格</li>
+        <li>留存</li>
+    </ul>
+    <div class="layui-tab-content" style="height: 100px;">
+        <div class="layui-tab-item layui-show">
+            <table id="reportList" lay-filter="reportTable"></table>
+        </div>
+        <div class="layui-tab-item">
+            <div id="container" style="min-width:400px;min-height:600px"></div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript" th:src="@{/js/report/common.js}"></script>
+<script type="text/javascript" th:src="@{/highcharts/highcharts.js}"></script>
+<script th:src="@{/js/dateUtils.js}"></script>
+<script th:src="@{/highcharts/modules/exporting.js}"></script>
+<script th:src="@{/highcharts/highcharts-zh_CN.js}"></script>
+<script th:src="@{/js/report/chartUtils.js}"></script>
+<script>
+    layuiTabId = 0;
+    var tableIns;
+    var pageCurr;
+    var tableSort = [{field: 'tDate', type: 'desc'}]
+    var currDate = getYesterday();
+    var ppfunsChart=new PpfunsChart({
+        url:"chart/list",
+        elm:'container',
+        styleBtn:'xAixsStypeStyle',
+        styleBtnAuto: function(){
+            let countFields = countFieldXmSelect.getValue();
+            var res=[]
+            if(countFields != null && countFields.length>0){
+                countFields.forEach(function(item,index,input){
+                    res.push(item.value);
+                });
+            }
+            return res;
+        },
+        chartsTypeArr:[
+            {name:'visitUserCount',value:'column',title:'访问用户数'},
+            {name:'playUserCount',value:'column',title:'播放用户数'},
+            {name:'playCount',value:'spline',title:'播放次数'},
+            {name:'duration',value:'spline',title:'播放时长'},
+            {name:'addUserCount',value:'column',title:'新增用户数'},
+            {name:'totalVisitUserCount',value:'column',title:'累计访问用户数'},
+            {name:'user2dayCount',value:'column',title:'2日留存用户数'},
+            {name:'user3dayCount',value:'column',title:'3日留存用户数'},
+        ],
+    });
+    layui.use(['form', 'laydate', 'element', 'table','layer'], function () {
+        layer = layui.layer; //独立版的layer无需执行这一句
+        form = layui.form;
+        laydate = layui.laydate;
+        table = layui.table;
+        var element = layui.element;
+        laydate.render({
+            elem: '#insertTimeStart'
+            , trigger: 'click'//添加属性
+        });
+        laydate.render({
+            elem: '#insertTimeEnd'
+            , trigger: 'click'//添加属性
+        });
+        laydate.render({
+            elem: '#insertTimeStart2'
+            , trigger: 'click'//添加属性
+            ,range:true
+        });
+        form.render("select");
+        form.on('submit(searchSubmit)', function (data) {
+            if (layuiTabId == 0) {
+                pageCurr=0;
+                queryTablePageByOrderby(tableIns,data,pageCurr,tableSort)
+            } else {
+                ppfunsChart.render({
+                    requestParams: data.field,
+                    countFields: data.field.countFields.split(','),
+                    title:"<div style='text-shadow: 10px 10px 50px #000;'>所有专区" +  data.field.userType + "</div>" + "日访问数据",
+                });
+            }
+            return false;
+        });
+        form.on('submit(convertDataSubmit)', function(data){
+            var index = layer.load();
+            $.ajax({
+                type: "POST",
+                data: data.field,
+                url: "gengerateData",
+                success: function (result) {
+                    layer.msg('生成成功');
+                    layer.close(index);
+                    layer.closeAll();
+                    $('#searchSubmit').trigger("click");
+                }
+            });
+            return false;
+        });
+        element.on('tab(reportTab)', function (data) {
+            layuiTabId = data.index;
+            if(layuiTabId==0){
+                $("#xAixsStypeStyle").hide();
+            }else{
+                $("#xAixsStypeStyle").show();
+            }
+            $('#searchSubmit').trigger("click");
+        });
+        initTable([{field: 'visitUserCount', title: '访问用户数',sort: true}
+            , {field: 'playUserCount', title: '播放用户数',sort: true}
+            , {field: 'playCount', title: '点播次数',sort: true}
+            , {field: 'duration', title: '播放时长',sort: true}
+            , {field: 'addUserCount', title: '新增用户数',sort: true}
+            , {field: 'totalVisitUserCount', title: '累计访问用户数',sort: true}])
+
+    });
+    //加载组件
+    layui.config({
+        base: '../../layui/extend/'
+    }).extend({
+        xmSelect: 'xm-select'
+    }).use(['xmSelect'], function(){
+        var xmSelect = layui.xmSelect;
+       countFieldXmSelect=xmSelect.render({
+            el: '#countField',
+            toolbar: {
+                show: true,
+                showIcon: true,
+            },
+            layVerify: 'required',
+            prop: {
+                name: 'name',
+                value: 'value',
+            },
+            name:"countFields",
+            filterable: true,
+            paging: true,
+            pageSize: 10,
+            height: '500px',
+            cascader: {
+               show: true,
+               indent: 200,
+            },
+            data: [ {name:'访问用户数', value:'visitUserCount',selected: true},
+                    {name:'播放用户数', value:'playUserCount',selected: true},
+                    {name:'点播次数', value:'playCount',selected: true},
+                    {name:'播放时长', value:'duration',selected: true},
+                    {name:'新增用户数', value:'addUserCount',selected: true},
+                    {name:'累计访问用户数', value:'totalVisitUserCount',selected: true},
+                    {name:'2日留存', value:'user2dayCount'},
+                    {name:'3日留存', value:'user3dayCount'},
+                    // {name:'2日新增留存', value:'addUser2dayCount'}
+                    ],
+            on: function(data){
+                var arr = data.arr;
+                var fieldArr = [];
+                var idx=0;
+                for (idx in arr) {
+                   fieldArr.push( {field: arr[idx].value, title: arr[idx].name,sort: true})
+                }
+                initTable(fieldArr)
+            },
+        });
+    });
+
+    function initTable(fieldArr){
+        tableIns = table.render({
+            elem: '#reportList'
+            ,title: '所有专区日访问统计'
+            , url: 'list'
+            , method: 'post' //默认：get请求
+            , cellMinWidth: 80
+            , height: 'full-200'
+            , page: true
+            , toolbar: true
+            , autoSort: false
+            , mutlSort:true
+            , where: {
+                countFields:countFieldXmSelect.getValue(),
+                userType: $('#userType').find("option:selected").val(),
+                orderby:getOrderByParams(tableIns,tableSort)
+            }
+            , initSort: tableSort
+            , request: {
+                pageName: 'page' //页码的参数名称，默认：page
+                , limitName: 'limit' //每页数据量的参数名，默认：limit
+            }
+            , response: {
+                statusName: 'status' //数据状态的字段名称，默认：code
+                , statusCode: 200 //成功的状态码，默认：0
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'rows' //数据列表的字段名称，默认：data
+            }
+            , cols: [
+                [{type: 'numbers'}
+                    , {field: 'tDate', title: '日期',sort: true}
+                    , {field: 'userType', title: '用户类型'}
+                ].concat(fieldArr)
+            ]
+            , done: function (res, curr, count) {
+                pageCurr = curr;
+            }
+        });
+        //触发排序事件
+        table.on('sort(reportTable)', function (obj) { //注：sort 是工具条事件名，test 是 table 原始容器的属性 lay-filter="对应的值"
+            tableSort=obj;//等价于this.sortCols;或者${this}[0].sortCols
+            $('#searchSubmit').trigger("click");
+        });
+    }
+
+    function convertDataFunc(){
+        layer.open({
+            type:1,
+            title: "生成日统计数据",
+            fixed:false,
+            resize :false,
+            shadeClose: true,
+            area: ['550px','600px'],
+            content:$('#convertDataPanel'),
+            end:function(){
+                laydate.render({
+                    elem: '#insertTimeStart2'
+                    ,value:null
+                });
+                form.render("laydate");
+            }
+        });
+    }
+</script>
+</html>

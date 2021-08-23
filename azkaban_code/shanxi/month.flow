@@ -1,0 +1,194 @@
+---
+config:
+  user.to.proxy: hadoop
+  failure.emails: noreply@foo.com
+  job_params: szmeizi=1
+
+nodes:
+ - name: start_job
+   type: command
+   config:
+      command: echo '我要开始了月数据处理。。。'
+
+ - name: app_area_visit_count_job
+   type: command
+   dependsOn:
+     - start_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=month/app_area_visit_count/1.hive ${job_params}
+
+ - name: export_app_area_visit_count_job
+   type: command
+   dependsOn:
+     - app_area_visit_count_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=month/app_area_visit_count/export.sqoop ${job_params}
+
+ - name: noapp_area_visit_count_job
+   type: command
+   dependsOn:
+     - start_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=month/noapp_area_visit_count/1.hive ${job_params}
+
+ - name: export_noapp_area_visit_count_job
+   type: command
+   dependsOn:
+     - noapp_area_visit_count_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=month/noapp_area_visit_count/export.sqoop ${job_params}
+
+
+ - name: app_album_content_type_job
+   type: command
+   dependsOn:
+     - start_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=month/app_album_content_type/1.hive ${job_params}
+
+ - name: export_app_album_content_type_job
+   type: command
+   dependsOn:
+     - app_album_content_type_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=month/app_album_content_type/export.sqoop ${job_params}
+
+
+ - name: app_online_order_job
+   type: command
+   dependsOn:
+     - start_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=month/app_online_order/1.hive ${job_params}
+
+ - name: export_app_online_order_job_job
+   type: command
+   dependsOn:
+     - app_online_order_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=month/app_online_order/export.sqoop ${job_params}
+
+ - name: area_online_order_job
+   type: command
+   dependsOn:
+     - start_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=month/area_online_order/1.hive ${job_params}
+
+ - name: export_area_online_order_job
+   type: command
+   dependsOn:
+     - area_online_order_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=month/area_online_order/export.sqoop ${job_params}
+
+
+ - name: app_draw_prize_count_job
+   type: command
+   dependsOn:
+     - start_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=month/app_draw_prize/1.hive ${job_params}
+
+ - name: export_app_draw_prize_count_job
+   type: command
+   dependsOn:
+     - app_draw_prize_count_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=month/app_draw_prize/export.sqoop ${job_params}
+
+ - name: export_app_prize_detail_count_job
+   type: command
+   dependsOn:
+     - app_draw_prize_count_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=month/app_draw_prize/export_detail.sqoop ${job_params}
+
+
+ - name: app_content_type_album_rank_job
+   type: command
+   dependsOn:
+     - start_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=month/app_content_type_album_rank/1.hive ${job_params}
+
+ - name: export_app_content_type_album_play_rank_job
+   type: command
+   dependsOn:
+     - app_content_type_album_rank_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=month/app_content_type_album_rank/export_type_play.sqoop ${job_params}
+
+ - name: export_app_content_type_album_user_rank_job
+   type: command
+   dependsOn:
+     - app_content_type_album_rank_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=month/app_content_type_album_rank/export_type_user.sqoop ${job_params}
+
+
+ - name: export_app_album_user_rank_job
+   type: command
+   dependsOn:
+     - app_content_type_album_rank_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=month/app_content_type_album_rank/export_user.sqoop ${job_params}
+
+ - name: export_app_content_type_album_duration_rank_job
+   type: command
+   dependsOn:
+     - app_content_type_album_rank_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=month/app_content_type_album_rank/export_type_duration.sqoop ${job_params}
+
+
+ - name: export_app_album_duration_rank_job
+   type: command
+   dependsOn:
+     - app_content_type_album_rank_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=month/app_content_type_album_rank/export_duration.sqoop ${job_params}
+
+ - name: noapp_content_type_album_rank_job
+   type: command
+   dependsOn:
+     - start_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=month/noapp_content_type_album_rank/1.hive ${job_params}
+
+ - name: export_noapp_content_type_album_play_rank_job
+   type: command
+   dependsOn:
+     - noapp_content_type_album_rank_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=month/noapp_content_type_album_rank/export_type_play.sqoop ${job_params}
+
+ - name: export_noapp_content_type_album_user_rank_job
+   type: command
+   dependsOn:
+     - noapp_content_type_album_rank_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=month/noapp_content_type_album_rank/export_type_user.sqoop ${job_params}
+
+
+ - name: export_noapp_album_user_rank_job
+   type: command
+   dependsOn:
+     - noapp_content_type_album_rank_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=month/noapp_content_type_album_rank/export_user.sqoop ${job_params}
+
+ - name: export_noapp_content_type_album_duration_rank_job
+   type: command
+   dependsOn:
+     - noapp_content_type_album_rank_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=month/noapp_content_type_album_rank/export_type_duration.sqoop ${job_params}
+
+
+ - name: export_noapp_album_duration_rank_job
+   type: command
+   dependsOn:
+     - noapp_content_type_album_rank_job
+   config:
+     command: bash ./tool/exec.sh scriptPath=month/noapp_content_type_album_rank/export_duration.sqoop ${job_params}

@@ -1,0 +1,7 @@
+
+轮播：
+1、轮播窗口播放时长：COLUMN_TYPE_SHORT_VIDEO_HISTORY_POINT统计
+2、轮播窗口各个视频点击次数：详情中afterSpm=123311.PAGE_YNGDJSJPB.128247.285.1604650447636 的内容时轮播ID=285
+3、轮播从小窗口进入影片的列表：详情中afterSpm=123311.PAGE_YNGDJSJPB.128247.285.1604650447636 的内容时轮播ID=285
+4、轮播点击播放的时长：详情中afterSpm=123311.PAGE_YNGDJSJPB.128247.66799.1604650447636 中66799=contentId columnId=轮播栏目ID
+5、短视频观看用户数最多的时段

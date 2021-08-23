@@ -1,0 +1,15 @@
+set hive.exec.parallel=true; 
+
+insert overwrite table album
+select t.album_id,t.album_name,t.content_type,t.labels from album a
+inner join album_tmp t on t.album_id=a.album_id
+union all
+select  t.album_id,t.album_name,t.content_type,t.labels from album_tmp t
+left join album a on a.album_id=t.album_id
+where a.album_id is null
+union all
+select  t.album_id,t.album_name,t.content_type,t.labels from album t
+left join album_tmp a on a.album_id=t.album_id
+where a.album_id is null;
+
+

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head th:include="layout :: htmlhead" th:with="title='清理用户管理'"></head>
+<form id="areaInfoSearch" class="layui-form layui-form-pane" method="post" action="" style="margin-top: 20px;">
+    <div class="layui-form-item">
+        <label class="layui-form-label">区域编码</label>
+        <div class="layui-input-inline">
+            <input id="areaNoS" name="areaNo" autocomplete="off" class="layui-input" type="text"/>
+        </div>
+        <label class="layui-form-label">区域名称</label>
+        <div class="layui-input-inline">
+            <input id="areaNameS" name="areaName" autocomplete="off" class="layui-input" type="text"/>
+        </div>
+        <label class="layui-form-label">城市编码</label>
+        <div class="layui-input-inline">
+            <input id="cityNoS" name="cityNo" autocomplete="off" class="layui-input" type="text"/>
+        </div>
+        <label class="layui-form-label">城市名称</label>
+        <div class="layui-input-inline">
+            <input id="cityNameS" name="cityName" autocomplete="off" class="layui-input" type="text"/>
+        </div>
+        <label class="layui-form-label">用户类型</label>
+        <div class="layui-input-inline">
+            <select id="userTypeS" name="userType">
+                <option value="">--全部--</option>
+                <option label="OTT" th:selected="${ppfuns.userType=='OTT'}" >OTT</option>
+                <option label="VOD" th:selected="${ppfuns.userType=='VOD'}">VOD</option>
+            </select>
+        </div>
+        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        <button class="layui-btn" lay-submit="" lay-filter="searchSubmit">查询</button>
+    </div>
+</form>
+
+<!--<hr class="layui-bg-blue"/>-->
+<hr class="layui-bg-black"/>
+    <button shiro:hasPermission="clean_user:add" class="layui-btn layui-btn-normal" onclick="add()">添加</button>
+    <button shiro:lacksPermission="clean_user:add" class="layui-btn layui-btn-normal  layui-btn-disabled">添加</button>
+
+<table id="areaInfoList" lay-filter="areaInfoTable"></table>
+<script type="text/html" id="effectiveTpl">
+    {{#  if(d.isEffective){ }}
+    <input shiro:hasPermission="area_info:setIsEffective" type="checkbox" name="{{d.areaName}}" value="{{d.id}}" lay-skin="switch" lay-text="启动|禁用"
+           lay-filter="isEffectiveTpl" checked="checked"/>
+    <input shiro:lacksPermission="area_info:setIsEffective" type="checkbox" name="{{d.areaName}}" value="{{d.id}}" lay-skin="switch" lay-text="启动|禁用"
+           lay-filter="isEffectiveTpl" checked="checked"/>
+    {{#  } else { }}
+    <input shiro:hasPermission="area_info:setIsEffective"  type="checkbox" name="{{d.areaName}}" value="{{d.id}}" lay-skin="switch" lay-text="启动|禁用"
+                                         lay-filter="isEffectiveTpl"/>
+    <input shiro:lacksPermission="area_info:setIsEffective"  type="checkbox" name="{{d.areaName}}" value="{{d.id}}" lay-skin="switch" lay-text="启动|禁用"
+           lay-filter="isEffectiveTpl"/>
+    {{#  } }}
+</script>
+
+<script type="text/html" id="optBar">
+    <a shiro:hasPermission="area_info:update" class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+    <a shiro:hasPermission="area_info:del" class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+<!--添加或编辑用户-->
+<div id="setAreaInfo" class="layer_self_wrap" style="width:500px;display:none;">
+    <form id="areaInfoForm" class="layui-form layui-form-pane" method="post" action="" style="margin-top: 20px;" lay-filter="areaInfoFormFilter">
+        <input id="pageNum" type="hidden" name="pageNum"/>
+        <input id="id" type="hidden" name="id"/>
+        <input id="isEffective" type="hidden" name="isEffective"/>
+        <div class="layui-form-item">
+            <label class="layui-form-label">类型</label>
+            <div class="layui-input-inline">
+                <select id="type" name="type">
+                    <option label="OTT" th:selected="${ppfuns.userType=='OTT'}" >OTT</option>
+                    <option label="VOD" th:selected="${ppfuns.userType=='VOD'}">VOD</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">区域编码</label>
+            <div class="layui-input-inline">
+                <input id="areaNo" name="areaNo" lay-verify="required" autocomplete="off" class="layui-input"
+                       type="text"/>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">区域名称</label>
+            <div class="layui-input-inline">
+                <input id="areaName" name="areaName" lay-verify="required" autocomplete="off" class="layui-input"
+                       type="text"/>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">城市编码</label>
+            <div class="layui-input-inline">
+                <input id="cityNo" name="cityNo" lay-verify="required" autocomplete="off" class="layui-input"
+                       type="text"/>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">城市名称</label>
+            <div class="layui-input-inline">
+                <input id="cityName" name="cityName" lay-verify="required" autocomplete="off" class="layui-input"
+                       type="text"/>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <div class="layui-input-block" style="margin-left: 10px;">
+                <button class="layui-btn" lay-submit="" lay-filter="areaInfoSubmit">提交</button>
+            </div>
+        </div>
+    </form>
+</div>
+<script th:src="@{/js/report/area_info.js}"></script>
+<script type="text/javascript" th:src="@{/js/sys/common.js}"></script>
+</html>

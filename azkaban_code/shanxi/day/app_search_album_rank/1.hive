@@ -1,0 +1,27 @@
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.groupby.orderby.position.alias=true; -- 启用别名对于group by和order by   map中key 别名groupby 不生效
+set hive.vectorized.execution.enabled=false; --控制是否启用查询执行的向量模式
+-- 媒资搜索排行前10
+insert overwrite table app_search_album_rank
+select '${endDate}' as t_date,user_type,t.parent_column_id,t.album_id,nvl(am.album_name,'') as album_name,nvl(am.content_type,'') as content_type,
+nvl(act.content_type_name,'') as content_type_name,t.count,rank from(
+select user_type,parent_column_id,album_id,count,rank from(
+select user_type,parent_column_id,album_id,count,dense_rank() OVER (partition by user_type,parent_column_id ORDER BY count desc) rank from(
+select user_type,parent_column_id,param["contentId"] as album_id,count(1) as count from events_type_log
+ where events_type ='PAGE_ALBUM_DETAILS' and concat(y,'-',m,'-',d)<'${endDate}' and param["pos"]='PAGE_SEARCH'
+ group by 1,2,3) a )b where rank<=20)t
+left join album am on am.album_id=t.album_id
+left join album_content_type act on act.content_type=am.content_type;
+
+insert overwrite table app_search_album_rank_day
+select t.t_date,user_type,t.parent_column_id,t.album_id,a.album_name,a.content_type,act.content_type_name,t.count,rank from(
+select t_date,user_type,parent_column_id,album_id,count,rank from(
+select t_date,user_type,parent_column_id,album_id,count,dense_rank() OVER (partition by t_date,parent_column_id ORDER BY count desc) rank from(
+select concat(y,'-',m,'-',d) as t_date,user_type,parent_column_id,param["contentId"] as album_id,count(1) as count from events_type_log
+ where events_type ='PAGE_ALBUM_DETAILS' and concat(y,'-',m,'-',d)<'${endDate}'
+ and concat(y,'-',m,'-',d)>='${startDate}' and param["pos"]='PAGE_SEARCH'
+ group by 1,2,3,4) a )b where rank<=20) t
+ left join album a on a.album_id=t.album_id
+ left join album_content_type act on act.content_type=a.content_type;
+

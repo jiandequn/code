@@ -1,0 +1,55 @@
+insert overwrite table album
+select t.album_id,t.album_name,t.content_type,t.labels from album a
+inner join album_tmp t on t.album_id=a.album_id
+union all
+select  t.album_id,t.album_name,t.content_type,t.labels from album_tmp t
+left join album a on a.album_id=t.album_id
+where a.album_id is null
+union all
+select  t.album_id,t.album_name,t.content_type,t.labels from album t
+left join album_tmp a on a.album_id=t.album_id
+where a.album_id is null;
+
+
+insert overwrite table video
+select t.video_id,t.album_id,t.video_name,t.video_duration from video a
+inner join video_tmp t on t.video_id=a.video_id
+union all
+select  t.video_id,t.album_id,t.video_name,t.video_duration from video_tmp t
+left join video a on a.video_id=t.video_id
+where a.video_id is null
+union all
+select  t.video_id,t.album_id,t.video_name,t.video_duration from video t
+left join video_tmp a on a.video_id=t.video_id
+where a.video_id is null;
+
+insert overwrite table album_content_type
+select t.content_type,t.content_type_name from album_content_type a
+inner join album_content_type_tmp t on t.content_type=a.content_type
+union all
+select  t.content_type,t.content_type_name from album_content_type_tmp t
+left join album_content_type a on a.content_type=t.content_type
+where a.content_type is null
+union all
+select  t.content_type,t.content_type_name from album_content_type t
+left join album_content_type_tmp a on a.content_type=t.content_type
+where a.content_type is null;
+
+
+
+insert overwrite table t_column_management
+select t.column_id,t.column_code,t.column_name,t.parent_id from t_column_management a
+inner join t_column_management_tmp t on t.column_id=a.column_id
+union all
+select  t.column_id,t.column_code,t.column_name,t.parent_id from t_column_management_tmp t
+left join t_column_management a on a.column_id=t.column_id
+where a.column_id is null
+union all
+select  t.column_id,t.column_code,t.column_name,t.parent_id from t_column_management t
+left join t_column_management_tmp a on a.column_id=t.column_id
+where a.column_id is null;
+
+
+
+
+

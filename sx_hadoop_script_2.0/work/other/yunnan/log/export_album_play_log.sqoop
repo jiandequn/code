@@ -1,0 +1,27 @@
+sqoop eval \
+--connect '%(db_url)s' \
+--username %(db_username)s \
+--password-file  %(db_pwdfile)s \
+--metadata-transaction-isolation-level 'TRANSACTION_REPEATABLE_READ' \
+--query "delete from album_play_log where 1=1"
+
+sqoop export \
+--connect '%(db_url)s' \
+--username %(db_username)s \
+--password-file  %(db_pwdfile)s \
+--export-dir /%(hive_province)s/hive/log/album_play_log \
+--table album_play_log \
+--columns parent_column_id,user_type,mac,sn,user_id,album_id,album_name,content_type,content_type_name,labels,video_id,video_name,video_duration,time_position,create_time \
+--update-key t_date,parent_column_id,album_id \
+--update-mode allowinsert \
+--input-null-string '\\N'  \
+--input-null-non-string '\\N' \
+--input-fields-terminated-by '\t' \
+--outdir %(sqoop_outdir)s/mr_java
+
+
+
+
+
+
+

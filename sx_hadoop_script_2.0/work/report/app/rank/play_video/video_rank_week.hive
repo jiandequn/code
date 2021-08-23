@@ -1,0 +1,33 @@
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.groupby.orderby.position.alias=true; -- 启用别名对于groupby和orderby
+
+-- 计算 专辑播放情况 按周
+create TEMPORARY table app_video_count_week_temp as
+select parent_column_id,album_id,video_id,count(distinct user_id) as user_count,sum(1) as play_count,
+sum(duration) as duration,year(date_sub(next_day(concat(y,'-',m,'-',d),'MO'),4)) as y,weekofyear(concat(y,'-',m,'-',d)) as w
+from app_album_play_log
+where concat(y,'-',m,'-',d)>='${startDate}'
+and concat(y,'-',m,'-',d)<'${endDate}' group by 1,2,3,7,8 cluster by parent_column_id,2;
+
+
+-- 按周统计专辑剧集播放用户数排行榜前20
+insert overwrite table app_video_user_count_rank_week
+select y, w,t.parent_column_id,t.album_id,a.album_name,a.content_type,act.content_type_name,t.video_id,v.video_name,t.user_count from(
+select y,w,parent_column_id,album_id,video_id,user_count,
+Row_Number() OVER (partition by y,w,parent_column_id ORDER BY user_count desc) rank from app_video_count_week_temp)t
+ left join album a on a.album_id=t.album_id
+ left join album_content_type act on act.content_type=a.content_type
+ left join video v on v.video_id=t.video_id
+where t.rank<=20;
+
+-- 按周统计专辑剧集播放次数排行榜前20
+insert overwrite table app_video_play_count_rank_week
+select y, w,t.parent_column_id,t.album_id,a.album_name,a.content_type,act.content_type_name,t.video_id,v.video_name,t.play_count from(
+select y, w,parent_column_id,album_id,video_id,play_count,
+dense_rank() OVER (partition by y,w,parent_column_id ORDER BY play_count desc) rank from app_video_count_week_temp)t
+ left join album a on a.album_id=t.album_id
+ left join album_content_type act on act.content_type=a.content_type
+ left join video v on v.video_id=t.video_id
+where t.rank<=20;
+

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head th:include="layout :: htmlhead" th:with="title='角色管理'">
+    <base th:href="${#request.getContextPath()}+'/'">
+</head>
+<body class="layui-layout-body">
+<div class="layui-layout layui-layout-admin">
+    <!--<div class="layui-body">-->
+        <div class="layui-tab layui-tab-brief" lay-filter="UserInfoTabFilter">
+            <ul class="layui-tab-title">
+                <li id="tableList" class="layui-this">用户信息</li>
+                <li id="chartList">专区区域新增用户数统计</li>
+                <li>所有专区区域新增用户数统计</li>
+                <li>累计访问用户数</li>
+            </ul>
+            <div class="layui-tab-content" style="height: 100px;">
+                <div id="roleListDiv" class="layui-tab-item layui-show">
+                    <div th:include="report/user/app_user_info :: app_user_info_list"></div>
+                </div>
+                <div id="appArea" class="layui-tab-item">
+                    <div th:include="report/user/app_area_table :: app_area_list"></div>
+                </div>
+                <div id="app_listDiv" class="layui-tab-item">
+                    <div th:include="report/user/noapp_area_table :: noapp_area_list"></div>
+                </div>
+                <div  id="app_total_user_listDiv" class="layui-tab-item">
+                    <div th:include="report/user/app_total_user_count :: app_total_user_count"></div>
+                </div>
+            </div>
+        </div>
+</div>
+<script >
+    layui.use('element', function(){
+        var element = layui.element;
+        //一些事件触发
+        element.on('tab(UserInfoTabFilter)', function(data){
+            console.log(data);
+        });
+    });
+</script>
+</body>
+</html>

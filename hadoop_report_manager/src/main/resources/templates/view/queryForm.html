@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head th:replace="header :: common_header(~{::title},~{::link},~{})">
+    <meta charset="UTF-8">
+    <title>时间范围</title>
+</head>
+<body>
+<label>统计类型:</label>
+<select id="dateType" name="dateType" class="easyui-combobox" style="width:40px;">
+    <option value="day" selected>天</option>
+    <option value="week">周</option>
+    <!--<option value="month">月</option>-->
+</select>
+<label>一级栏目:</label>
+<input name="parentColumnId"/>
+<label>用户类型:</label>
+<select name="userType">
+    <option value="">全部</option>
+    <option value="VOD">VOD</option>
+    <option value="OTT">OTT</option>
+</select>
+<label>时间范围:</label>
+    <select id="queryYear" name="year">
+        <option value="2019">2019</option>
+    </select>年-
+    <select id="queryWeek" name="year">
+        <option value="">全部</option>
+    </select>周
+    <select id="queryMonth" name="year">
+        <option value="">全部</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+        <option value="11">11</option>
+        <option value="12">12</option>
+    </select>月
+   <input id="startDate" type="text" class="easyui-datebox" />~ <input id="endDate" type="text" class="easyui-datebox" />
+</body>
+<script >
+    $(function () {
+        for(var a=1;i<=53;a++){
+            $("#queryWeek").append("<option value='"+a+"'>"+a+"</option>");
+        }
+        $.each(data.result,function (i,v) {
+        });
+    }
+    var dateTypeSelect = function(record,datagrid){
+        if(record.value=="week"){
+            datagrid.datagrid('showColumn', 'year');
+            datagrid.datagrid('showColumn', 'week');
+            datagrid.datagrid('hideColumn', 'dateTime');
+            datagrid.datagrid('hideColumn', 'month');
+            datagrid.datagrid('hideColumn', 'day');
+        }else if(record.value == "day"){
+            datagrid.datagrid('hideColumn', 'year');
+            datagrid.datagrid('hideColumn', 'week');
+            datagrid.datagrid('showColumn', 'dateTime');
+            datagrid.datagrid('hideColumn', 'month');
+            datagrid.datagrid('hideColumn', 'day');
+        }else if(record.value== "month"){
+            datagrid.datagrid('showColumn', 'year');
+            datagrid.datagrid('hideColumn', 'week');
+            datagrid.datagrid('hideColumn', 'dateTime');
+            datagrid.datagrid('showColumn', 'month');
+            datagrid.datagrid('hideColumn', 'day');
+        } else if(record.value== "year"){
+            datagrid.datagrid('showColumn', 'year');
+            datagrid.datagrid('hideColumn', 'week');
+            datagrid.datagrid('hideColumn', 'dateTime');
+            datagrid.datagrid('hideColumn', 'month');
+            datagrid.datagrid('hideColumn', 'day');
+        }
+    }
+</script>
+</html>

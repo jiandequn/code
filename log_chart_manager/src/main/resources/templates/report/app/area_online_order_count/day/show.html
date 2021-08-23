@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head th:include="layout :: htmlhead" th:with="title='角色管理'">
+    <base th:href="${#request.getContextPath()}+'/'">
+</head>
+<body class="layui-layout-body">
+<div class="layui-layout layui-layout-admin">
+    <!--<div class="layui-body">-->
+        <div class="layui-tab layui-tab-brief" lay-filter="docDemoTabBrief">
+            <ul class="layui-tab-title">
+                <li id="tableList" class="layui-this">表格样式</li>
+<!--                <li id="chartList">柱图</li>-->
+            </ul>
+            <div class="layui-tab-content" style="height: 100px;">
+                <div id="roleListDiv" class="layui-tab-item layui-show">
+                    <div th:include="report/app/area_online_order_count/day/table :: tableList"></div>
+                </div>
+<!--                <div id="setRoleDiv" class="layui-tab-item">-->
+<!--                    <div th:include="sys/role/role :: role"></div>-->
+<!--                </div>-->
+            </div>
+        </div>
+</div>
+</body>
+</html>

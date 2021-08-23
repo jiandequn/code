@@ -1,0 +1,8 @@
+use yn_hadoop;
+-- 清楚备份库的数据
+dfs -rm -R -f ${hadoop.hdfs.url}/data/hive/backup/${year}-${month}-${day}
+dfs -mkdir ${hadoop.hdfs.url}/data/hive/backup/${year}-${month}-${day}
+--把日志数据迁移到hive备份库
+dfs -cp -p ${hadoop.hdfs.url}${hadoop.log.dir} ${hadoop.hdfs.url}/data/hive/backup/${year}-${month}-${day}
+-- 加载日志
+LOAD DATA  INPATH '${hadoop.hdfs.url}/data/hive/backup/${year}-${month}-${day}' overwrite INTO TABLE yn_logs PARTITION (y='${year}',m='${month}',d='${day}');

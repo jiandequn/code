@@ -1,0 +1,130 @@
+drop table IF EXISTS detail_page_log;
+CREATE TABLE IF NOT EXISTS detail_page_log(
+     parent_column_id string COMMENT '父栏目',
+     user_type string COMMENT '用户类型',
+     mac string COMMENT 'MAC',
+     sn string COMMENT 'SN',
+     user_id string COMMENT '用户ID',
+     column_id string COMMENT '栏目ID',
+     album_id string COMMENT '专辑ID',
+     content_type string COMMENT '内容类型1专辑 2专题',
+     after_column_id string COMMENT '来源栏目ID',
+     after_column_code string COMMENT '来源栏目code',
+     after_column_name string COMMENT '来源栏目Name',
+     area_code string COMMENT '区域码',
+     create_time string COMMENT '创建时间',
+     album_name string COMMENT '专辑名称',
+     album_content_type_name string COMMENT '专辑类型名称',
+     labels string COMMENT '二级分类'
+) COMMENT '详情页日志'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/log/detail_page_log';
+
+drop table IF EXISTS album_play_log;
+CREATE TABLE IF NOT EXISTS album_play_log (
+     parent_column_id string COMMENT '父栏目',
+     user_type string COMMENT '用户类型',
+     mac string COMMENT 'MAC',
+     sn string COMMENT 'SN',
+     user_id string COMMENT '用户ID',
+     album_id string COMMENT '专辑ID',
+     album_name string COMMENT '专辑名称',
+     content_type string COMMENT '专辑类型',
+     content_type_name string COMMENT '专辑类型名称',
+     labels STRING COMMENT '二级分类',
+     video_id string COMMENT '剧集ID',
+     video_name STRING comment '剧集名称',
+     video_duration STRING comment '剧集时长',
+     time_position string COMMENT '播放时长',
+     create_time string COMMENT '创建时间'
+) COMMENT '历史播放日志'
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY '\t'
+stored as textfile
+location '/${hive.province}/hive/log/album_play_log';
+
+drop table IF EXISTS login_page_log;
+CREATE TABLE IF NOT EXISTS login_page_log (
+     parent_column_id string COMMENT '父栏目',
+     user_type string COMMENT '用户类型',
+     mac string COMMENT 'MAC',
+     sn string COMMENT 'SN',
+     user_id string COMMENT '用户ID',
+     column_id string COMMENT '栏目ID',
+     after_column_id string COMMENT '父栏目ID',
+     after_column_code string COMMENT '父栏目Code',
+     after_column_name string COMMENT '来源栏目Name',
+     area_code string COMMENT '区域code',
+     create_time string COMMENT '创建时间'
+) COMMENT '首页访问日志'
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY '\t'
+stored as textfile
+location '/${hive.province}/hive/log/login_page_log';
+
+
+drop table IF EXISTS auth_product_user;
+CREATE TABLE IF NOT EXISTS auth_product_user (
+     user_id string COMMENT '用户ID',
+     mac string COMMENT 'MAC',
+     sn string COMMENT 'SN',
+     user_type string COMMENT '用户类型',
+     area_code string COMMENT '专辑ID',
+     third_product_code string COMMENT '鉴权产品',
+     create_time string COMMENT '时间'
+) COMMENT '鉴权产品信息'
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY '\t'
+stored as textfile
+location '/${hive.province}/hive/auth/product_user';
+
+drop table IF EXISTS app_user_stay_duration_week;
+CREATE TABLE IF NOT EXISTS app_user_stay_duration_week (
+     year string COMMENT '用户ID',
+     week string COMMENT 'MAC',
+     parent_column_id string COMMENT '专区ID',
+     user_type string COMMENT '用户类型',
+     mac string COMMENT 'MAC',
+     sn string COMMENT 'SN',
+     user_id string COMMENT '用户ID',
+     area_code string COMMENT '专辑ID',
+     stay_duration string COMMENT '逗留时长(毫秒)'
+) COMMENT '用户专区周停留时长累计'
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY '\t'
+stored as textfile
+location '/${hive.province}/hive/log/app_user_stay_duration_week';
+
+
+
+drop table IF EXISTS short_video;
+create table IF NOT EXISTS short_video(
+     short_video_id INT,
+     creator_id INT,
+     name string,
+     labels String,
+     cp_id INT,
+     content_type INT
+)
+COMMENT 'mysql短视频详情'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/sqoop/short_video';
+
+drop table IF EXISTS short_video_tmp;
+create table IF NOT EXISTS short_video_tmp(
+    short_video_id INT,
+     creator_id INT,
+     name string,
+     labels String,
+     cp_id INT,
+     content_type INT
+)
+COMMENT 'mysql短视频详情'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/sqoop/tmp/short_video';

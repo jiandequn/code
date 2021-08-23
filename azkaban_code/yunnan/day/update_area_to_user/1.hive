@@ -1,0 +1,8 @@
+insert overwrite table area_update_to_user
+select ui.user_id,ui.user_type,a.area_code from user_info  ui
+inner join (select if(user_type='OTT',mac,user_id) as user_id,user_type,collect_set(area_code)[0] as area_code
+from events_type_log
+where concat(y,'-',m,'-',d)>='${startDate}' and concat(y,'-',m,'-',d)<'${endDate}' group by 1,2) a
+on a.user_id=ui.user_id and a.user_type=ui.user_type
+where (ui.area_code='' or ui.area_code is null) and a.area_code is not null;
+

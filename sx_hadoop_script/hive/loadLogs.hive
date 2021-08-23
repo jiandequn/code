@@ -1,0 +1,22 @@
+use yn_hadoop;
+--设置作业名
+set mapred.job.name = hive_load_yn_logs;
+set mapreduce.map.memory.mb = 4096;
+set mapreduce.reduce.memory.mb = 4096;
+set mapreduce.map.java.opts=-Xmx3278m;
+set mapreduce.reduce.java.opts=-Xmx3278m;
+--Map输入合并大小
+set mapreduce.input.fileinputformat.split.maxsize=300000000;
+set mapreduce.input.fileinputformat.split.minsize=100000000;
+set mapreduce.input.fileinputformat.split.minsize.per.node=100000000;
+set mapreduce.input.fileinputformat.split.minsize.per.rack=100000000;
+set hive.input.format=org.apache.hadoop.hive.ql.io.CombineHiveInputFormat;
+--设置reduce数目
+set hive.exec.reducers.bytes.per.reducer= 300000000;
+set hive.exec.reducers.max=300;
+set mapred.reduce.tasks=10;
+--控制当map任务执行到哪个比例的时候就可以开始为reduce task申请资源
+set mapreduce.job.reduce.slowstart.completedmaps=0.001;
+
+-- 加载日志
+LOAD DATA  INPATH '${hive.back.url}/*' overwrite INTO TABLE yn_logs PARTITION (y='${year}',m='${month}',d='${day}');

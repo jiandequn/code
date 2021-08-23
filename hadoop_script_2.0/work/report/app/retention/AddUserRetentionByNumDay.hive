@@ -1,0 +1,12 @@
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+--统计新增用用户留存数据
+insert into app_retention_count_day
+SELECT '${startDate}' AS t_date,a.parent_column_id,a.user_type,count(1) as user_count FROM app_increase_user a
+INNER JOIN (SELECT parent_column_id, user_type, user_id FROM events_type_log
+WHERE concat(y, '-', m, '-', d) >= '${startDate}' AND concat(y, '-', m, '-', d) <= '${endDate}'
+GROUP BY parent_column_id, user_type, user_id HAVING datediff('${endDate}','${startDate}') = count(1)-1) v
+ON  v.parent_column_id=a.parent_column_id and v.user_type=a.user_type and v.user_id=a.user_id
+WHERE concat(a.y, '-', a.m, '-', a.d)='${startDate}' GROUP BY a.parent_column_id,a.user_type
+
+

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<body>
+<div th:fragment="updateRole">
+    <form id="updateRoleForm" class="layui-form" action="" method="post">
+        <input type="hidden" id="id" name="id"  th:value="${roleDetail != null}?(${roleDetail.id != null}? ${roleDetail.id} : '') : ''"/>
+        <input type="hidden" id="rolePermIds" name="rolePermIds"/>
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">角色名称：</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="roleName" th:value="${roleDetail != null}?(${roleDetail.roleName != null}? ${roleDetail.roleName} : '') : ''" lay-verify="required" autocomplete="off" class="layui-input"/>
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">角色编号：</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="code" th:value="${roleDetail != null}?(${roleDetail.code != null}? ${roleDetail.code} : '') : ''" lay-verify="required" autocomplete="off" class="layui-input"/>
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">角色描述：</label>
+            <div class="layui-input-block">
+                <input type="text" name="descpt" th:value="${roleDetail != null}?(${roleDetail.descpt != null}? ${roleDetail.descpt} : '') : ''" lay-verify="" placeholder="" autocomplete="off" class="layui-input"/>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">权限：</label>
+            <div class="layui-input-block">
+                <!--<ul id="treeDemo" class="ztree"></ul>-->
+                <div id="treeDemo1"  class="demo-tree-more"></div>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button shiro:hasPermission="sys_role:add" class="layui-btn" lay-submit="" lay-filter="updateRoleSumbit">立即提交</button>
+                <button shiro:lacksPermission="sys_role:add" class="layui-btn layui-btn-disabled" lay-submit="" lay-filter="updateRoleSumbit" disabled>立即提交</button>
+                <!--<button type="reset" class="layui-btn layui-btn-primary">重置</button>-->
+            </div>
+        </div>
+    </form>
+    <!--<script src="/js/ztree/jquery.ztree.all.js"></script>-->
+    <!--<script src="/js/auth/roleUpdate.js"></script>-->
+    <script th:inline="javascript">
+//        var permIdList=/*[[${perms}]]*/;
+        var permList =/*[[${permList}]]*/;
+    </script>
+    <script type="text/javascript">
+        $(function() {
+            if(flag=="updateRole"){
+
+            }
+            layui.use('tree', function(){
+                tree = layui.tree;
+                //渲染
+                var inst1 = tree.render({
+                    elem: '#treeDemo1'  //绑定元素
+                    ,id:"demoId"
+                    ,showCheckbox: true  //是否显示复选框
+                    ,isJump: true //是否允许点击节点时弹出新窗口跳转
+                    ,data:permList
+                    ,click: function(obj){
+                        var data = obj.data;  //获取当前点击的节点数据
+                        layer.msg('状态：'+ obj.state + '<br>节点数据：' + JSON.stringify(data));
+                    }
+                });
+            });
+            layui.use(['form' ,'layer'], function(){
+                var form = layui.form;
+                var layer=layui.layer;
+
+                //监听提交
+                form.on('submit(updateRoleSumbit)', function(data){
+                    //获取选中的权限
+                    var checkData = tree.getChecked('demoId');
+                    //选中的复选框
+                    var roleIds = getTreeNodeId(checkData);
+                    //校验是否授权
+                    var permList = roleIds.join(",");
+                    // console.log("permList:"+permList)
+                    if(permList==null || permList==''){
+                        layer.alert("请给该角色添加权限菜单！")
+                        return false;
+                    }
+                    $("#rolePermIds").val(permList);
+                    $.ajax({
+                        type: "POST",
+                        data: $("#updateRoleForm").serialize(),
+                        url: "/sys/role/setRole",
+                        success: function (data) {
+                            ajaxSucFunc(data,function(){
+                                layer.closeAll();
+                                load();
+                            })
+                        },
+                        error:ajaxErrorFunc
+                    });
+                    return false;
+                });
+                form.render();
+            });
+        });
+        function getTreeNodeId(nodes){
+            var ar = new Array();
+            for (var i = 0; i < nodes.length; i++) {
+                var nv = nodes[i];
+                ar.push(nv.id);
+                if( nv.children != null && nv.children != undefined){
+                    var childrenAr= getTreeNodeId(nv.children);
+                    ar.push(childrenAr);
+                }
+            }
+            return ar;
+        }
+    </script>
+</div>
+</body>
+</html>

@@ -1,0 +1,17 @@
+# query hive不支持- -create-hive-table
+sqoop import \
+--connect '%(db_url)s' \
+--username %(db_username)s \
+--password-file  %(db_pwdfile)s \
+--query 'select column_id,column_name,user_type,start_date,end_date from product_column where $CONDITIONS and is_effective=1' \
+--columns column_id,column_name,user_type,start_date,end_date \
+--driver com.mysql.jdbc.Driver \
+--fields-terminated-by '\t' \
+--delete-target-dir \
+--num-mappers 1 \
+--hive-import \
+--hive-database %(hivedb)s \
+--hive-table product_column \
+--hive-overwrite \
+--target-dir '/data/sqoop/tmp/product_column' \
+--outdir %(sqoop_outdir)s/mr_java

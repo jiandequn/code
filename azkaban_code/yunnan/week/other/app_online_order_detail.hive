@@ -1,0 +1,20 @@
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.groupby.orderby.position.alias=true; -- 启用别名对于groupby和orderby
+set hive.vectorized.execution.enabled=false;
+
+truncate table app_online_order_detail;
+insert overwrite table app_online_order_detail
+select t.user_type,t.parent_column_id,t.order_id,t.mac,t.sn,t.user_id,t.area_code,t.product_id,t.product_name,t.content_type,tpp.present_price,t.content_id,t.pay_type,
+t.third_product_code,t.spm[2] as inlet_column_id,t.spm[1] as inlet_column_code,tcm.column_name as inlet_column_name,
+t.spm[3] as inlet_ablum_id, a.album_name as inlet_album_name,t.create_time from(
+select user_type,parent_column_id,mac,sn,user_id,area_code,param['productId'] as product_id,param['productName'] as product_name,param['contentType'] as content_type,param['contentId'] as content_id,
+param['thirdProductCode'] as third_product_code,param['payType'] as pay_type,
+param['orderId'] as order_id,split(max(param['afterSpm']),'\\.') as spm,min(create_time) as create_time from events_type_log where events_type='ORDER' and param['result']='true'
+and concat(y,'-',m,'-',d)>='${startDate}' and concat(y,'-',m,'-',d)<'${endDate}'
+group by 1,2,3,4,5,6,7,8,9,10,11,12,13
+) t
+left join t_column_management tcm on tcm.column_id=t.spm[2]
+left join album a on a.album_id=t.spm[3]
+left join t_price_product tpp on tpp.product_id=t.product_id;
+

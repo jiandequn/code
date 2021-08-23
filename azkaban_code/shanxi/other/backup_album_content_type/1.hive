@@ -1,0 +1,8 @@
+
+insert overwrite table report_album_content_type
+select content_type,content_type_name from album_content_type ac
+ where ac.content_type in(select distinct a.content_type from album a);
+
+
+
+

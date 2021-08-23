@@ -1,0 +1,25 @@
+---
+config:
+  user.to.proxy: hadoop
+  failure.emails: noreply@foo.com
+  job_params: szmeizi=1
+
+nodes:
+  - name: start_job
+    type: command
+    config:
+      command: echo "开始其他任务"
+
+  - name: reprot_album_content_type_hive_job
+    type: command
+    config:
+      command: bash ./tool/exec.sh scriptPath=other/backup_album_content_type/1.hive
+    dependsOn:
+      - start_job
+
+  - name: export_reprot_album_content_type_job
+    type: command
+    config:
+      command: bash ./tool/exec.sh scriptPath=other/backup_album_content_type/export.sqoop ${job_params}
+    dependsOn:
+      - reprot_album_content_type_hive_job

@@ -1,0 +1,25 @@
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.groupby.orderby.position.alias=true; -- 启用别名对于groupby和orderby
+set hive.vectorized.execution.enabled=false;
+-- 统计广电专题入口进入时，访问专辑详情的用户数和访问次数
+
+insert overwrite table app_inlet_position_subject_album_count_day
+select s.t_date,s.user_type,s.events_type,s.parent_column_id,s.after_spm,ts.subject_name,s.album_id,a.album_name,a.content_type,act.content_type_name,user_count,visit_count from (
+select  concat(t.y,'-',t.m,'-',t.d) as t_date,t.events_type,t.afterSpm as after_spm,t.user_type,t.parent_column_id,t.subject_id,etl.param['contentId'] as album_id,count(distinct t.user_id) user_count,count(1) as visit_count
+ from (
+select y,m,d,events_type,user_Type,if(user_type='OTT',mac,user_id) as user_id,area_code,parent_column_id,param['columnId'] as column_id,param['contentId'] subject_id,split(param['nowSpm'],'\\.') as nowSpm,param['afterSpm'] as afterSpm from events_type_log
+where events_type in('PAGE_SPECIAL_DETAILS')
+and concat(y,'-',m,'-',d)>='${startDate}' and  concat(y,'-',m,'-',d)<'${endDate}'
+and (param['afterSpm'] RLIKE '^[0-9A-Za-z0-9_]{1,}\\.[A-Za-z0-9_]{1,}\\.0\\.0\\.0' 
+or param['afterSpm'] RLIKE '^[0-9A-Za-z0-9_]{1,}\\.[A-Za-z0-9_]{1,}\\.[0-9]{1,}$')
+and  param['nowSpm'] RLIKE '^[0-9]{1,}\\.[A-Za-z0-9_]{1,}\\.[0-9]{1,}\\.[0-9]{1,}\\.[0-9]{13}$' ) t
+inner join events_type_log  etl on etl.events_type='PAGE_ALBUM_DETAILS' and etl.parent_column_id=t.parent_column_id and etl.user_type=t.user_type
+and if(etl.user_type='OTT',etl.mac,etl.user_id)=t.user_id and etl.param['columnId']=t.column_id and split(etl.param['afterSpm'],'\\.')[4]=t.nowSpm[4] and split(etl.param['afterSpm'],'\\.')[1]=t.nowSpm[1]
+and concat(etl.y,'-',etl.m,'-',etl.d)>='${startDate}' and  concat(etl.y,'-',etl.m,'-',etl.d)<'${endDate}'
+group by 1,2,3,4,5,6,7) s
+left join t_subject ts on ts.subject_id=s.subject_id
+left join album a on a.album_id=s.album_id
+left join album_content_type act on act.content_type=a.content_type
+
+

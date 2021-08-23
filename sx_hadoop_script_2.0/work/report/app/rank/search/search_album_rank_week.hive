@@ -1,0 +1,15 @@
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.groupby.orderby.position.alias=true; -- 启用别名对于group by和order by   map中key 别名groupby 不生效
+set hive.vectorized.execution.enabled=false; --控制是否启用查询执行的向量模式
+-- 媒资搜索排行前10
+insert overwrite table app_search_album_rank_week
+select t.y,t.w,t.parent_column_id,t.album_id,a.album_name,a.content_type,act.content_type_name,t.count from(
+select y,w,parent_column_id,album_id,count,
+dense_rank() OVER (partition by y,w,parent_column_id ORDER BY count desc) rank from(
+select year(date_sub(next_day(concat(y,'-',m,'-',d),'MO'),4)) as y,weekofyear(concat(y,'-',m,'-',d)) as w,parent_column_id,param["contentId"] as album_id,count(1) as count from events_type_log
+ where events_type ='PAGE_ALBUM_DETAILS' and concat(y,'-',m,'-',d)>='${startDate}' and concat(y,'-',m,'-',d)<'${endDate}' and param["pos"]='PAGE_SEARCH'
+ group by 1,2,parent_column_id,4) a) t
+ left join album a on a.album_id=t.album_id
+ left join album_content_type act on act.content_type=a.content_type
+ where t.rank<=20;

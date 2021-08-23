@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<html>
+<head th:replace="header :: common_header(~{::title},~{::link},~{})">
+    <meta charset="UTF-8">
+    <title>内容管理平台</title>
+    <link rel="stylesheet" type="text/css" href="/css/default.css">
+
+</head>
+<body class="easyui-layout" style="overflow-y: hidden" scroll="no">
+<div region="west" hide="true" split="true" title="导航菜单" style="width:180px;" id="west">
+    <div id="sm" data-toggle="topjui-sidemenu" class="easyui-sidemenu"></div>
+</div>
+
+<div region="center" id="mainPanle" style="background: #eee; overflow-y:hidden">
+    <div id="tabs" class="easyui-tabs" fit="true" border="false">
+        <div title="首页" iconCls="icon-nav" style="padding:20px;overflow:hidden;" id="home">
+            <div style='height:100%;width:100%;text-align:center;vertical-align:middle'>
+                <div class="panel-group" id="accordion">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-toggle="collapse" data-parent="#accordion"
+                                   href="#collapseOne">
+                                    第 1 部分--表信息管理 功能介绍
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapseOne" class="panel-collapse collapse in">
+                            <div class="panel-body">
+                                <p class="text-left text-info">&nbsp;&nbsp;&nbsp; 1、主要用于开发人员管理需要导出表  </p>
+                                <p class="text-left text-info">&nbsp;&nbsp;&nbsp; 2、更新维护hadoop生成数据需要从内容库中同步的媒资、栏目等信息的SQL脚本  </p>
+                                <p class="text-left text-danger"> &nbsp;&nbsp;&nbsp; 注意：非开发运维人员慎重使用   </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel panel-success">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-toggle="collapse" data-parent="#accordion"
+                                   href="#collapseTwo">
+                                    第 2 部分--下载文件维护管理 功能介绍
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapseTwo" class="panel-collapse collapse">
+                            <div class="panel-body">
+                                <p class="text-left text-info"> &nbsp;&nbsp;&nbsp; 1、目前只支持csv文件的下载   </p>
+                                <p class="text-left text-info"> &nbsp;&nbsp;&nbsp; 2、支持批量和单文件勾选下载      </p>
+                                <p class="text-left text-info"> &nbsp;&nbsp;&nbsp; 3、可以动态支持关联内容库进行数据导出； </p>
+                                <p class="text-left text-danger">&nbsp;&nbsp;&nbsp;   注意：该模块支持对导出字段动态配置；字段导出和查询SQL相关；需开发运维人员动态配置 </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel panel-info">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-toggle="collapse" data-parent="#accordion"
+                                   href="#collapseThree">
+                                    第 3 部分--日志下载页面 功能介绍
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapseThree" class="panel-collapse collapse">
+                            <div class="panel-body">
+                                <p class="text-left text-info"> &nbsp;&nbsp;&nbsp;1、支持对“首页访问日志、详情页日志、历史点播日志”的历史生成数据下载（现网数据从2019-12-02开始）  </p>
+                                <p class="text-left text-info">&nbsp;&nbsp;&nbsp;2、对于日志中“详情页，历史点播记录”需同步内容管理系统的，运营人员可点击同步“同步数据”按钮；（一般不需操作，系统生成数据是自动同步） </p>
+                                <p class="text-left text-info">&nbsp;&nbsp;&nbsp;3、该页提供的是旧的数据下载；表后缀会带上时间范围的数据 如：first_page_log20191111_20191128   </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel panel-warning">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-toggle="collapse" data-parent="#accordion"
+                                   href="#collapseFour">
+                                   第 4 部分--Hadoop执行管理  功能介绍
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapseFour" class="panel-collapse collapse">
+                            <div class="panel-body">
+                                <p class="text-left text-info"> &nbsp;&nbsp;&nbsp; 1、该功能可以根据时间和名称动态生成所需日志数据  </p>
+                                <p class="text-left text-info"> &nbsp;&nbsp;&nbsp; 2、可动态监控hadoop的MR程序是否正在动态执行         </p>
+                                <p class="text-left text-danger"> &nbsp;&nbsp;&nbsp;注意：使用时，尽量不要在用户高峰期操作；                 </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div region="south" border="true" style="height:50px;padding:10px;text-align:center">
+    &copy;版权所有
+</div>
+</body>
+</html>
+<script type="text/javascript" th:src="@{/js/prettify.js}"></script>
+<script type="text/javascript">
+    var data = [{
+        text: '报表导出管理',
+        iconCls: 'icon-more',
+        state: 'open',
+        children: [{
+            id: 1,
+            text: '表信息管理',
+            iconCls: "icon-nav",
+            href: "/view/table_info/list.html"
+        }, {
+            id: 2,
+            text: '下载文件维护管理',
+            iconCls: "icon-nav",
+            href: "/view/export_table/list.html"
+        }, {
+            id: 3,
+            text: '日志下载页面',
+            iconCls: "icon-nav",
+            href: "/view/download.html"
+        }, {
+            id: 4,
+            text: 'hadoop执行管理',
+            iconCls: "icon-nav",
+            href: "/view/shell_cmd/list.html"
+        }, {
+            id: 5,
+            text: 'JAVA类管理',
+            iconCls: "icon-nav",
+            href: "/view/runClass/list.html"
+        }]
+    },{
+        text: '详情管理',
+        iconCls: 'icon-more',
+        state: 'open',
+        children: [{
+            id: '2_1',
+            text: '用户信息',
+            iconCls: "icon-nav",
+            href: "/view/report/user_info.html"
+        }]
+    }];
+    $('#sm').sidemenu({
+        data: data,
+        onSelect: function (item) {
+            openTab(item.id, item.href, item.text)
+        }
+    });
+    $('#tabs').tabs({
+        onLoad: function (panel) {
+            var plugin = panel.panel('options').title;
+            panel.find('textarea[name="code-' + plugin + '"]').each(function () {
+                var data = $(this).val();
+                data = data.replace(/(\r\n|\r|\n)/g, '\n');
+                if (data.indexOf('\t') == 0) {
+                    data = data.replace(/^\t/, '');
+                    data = data.replace(/\n\t/g, '\n');
+                }
+                data = data.replace(/\t/g, '    ');
+                var pre = $('<pre name="code" class="prettyprint linenums"></pre>').insertAfter(this);
+                pre.text(data);
+                $(this).remove();
+            });
+            prettyPrint();
+        }
+    });
+    function openTab(authId, plugin, name) {
+        var tab = $('#tabs').tabs('getSelected');
+        var index = $('#tabs').tabs('getTabIndex',tab);
+        var contentHtml = '<div id="yeeee" class="easyui-layout" data-options="fit:true,split:true,maxHeight:1000"><iframe src="'+plugin+'" frameborder="0"  border="0" marginwidth="0" marginheight="0" scrolling="yes"   style="width:100%" height="100%"></iframe></div> ';
+//    if(index != 0 || index > 0){
+//        $("#tt").tabs("close",1);
+//    }
+        $("ul li").removeClass("selected");
+        $("#click_"+authId).addClass("selected");
+        if ($('#tabs').tabs('exists',name)){
+            $('#tabs').tabs('select', name);
+        } else {
+            $('#tabs').tabs('add',{
+                title:name,
+                closable:true,
+                content:contentHtml,
+                onSelect:function(name){
+                    console.log(name);
+                },
+                extractor:function(data){
+                    data = $.fn.panel.defaults.extractor(data);
+//				console.log(data);
+//				var tmp = $('<div></div>').html(data);
+//				data = tmp.find('#content').html();
+//				tmp.remove();
+                    return data;
+                }
+            });
+        }
+    }
+    $(function () { $('#collapseFour').collapse({
+        toggle: false
+    })});
+    $(function () { $('#collapseTwo').collapse('show')});
+    $(function () { $('#collapseThree').collapse('toggle')});
+    $(function () { $('#collapseOne').collapse('hide')});
+</script>
+<script src="/bootstrap/js/bootstrap.min.js"></script>

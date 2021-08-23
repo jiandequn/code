@@ -1,0 +1,21 @@
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.groupby.orderby.position.alias=true; -- 启用别名对于groupby和orderby
+set hive.vectorized.execution.enabled=false;
+-- 用户来源入口'13187.PAGE_SXGDJSJ.0.0.0' 统计了用户来源数，和用户点击次数
+--按日统计用户来源
+ insert overwrite table app_visit_enter_position_month
+select y,m,user_type,events_type,parent_column_id,param['afterSpm'] as spm,count(distinct sn) user_count,count(1) as visit_count from events_type_log
+where events_type in('COLUMN_TYPE_PRODUCT','COLUMN_TYPE_SEARCH','PAGE_SPECIAL_DETAILS','PAGE_ALBUM_DETAILS')
+and concat(y,'-',m,'-',d)>='${startDate}' and  concat(y,'-',m,'-',d)<'${endDate}'
+and (param['afterSpm'] RLIKE '^[0-9A-Za-z0-9_]{1,}\\.[A-Za-z0-9_]{1,}\\.0\\.0\\.0' or param['afterSpm'] RLIKE '^[0-9A-Za-z0-9_]{1,}\\.[A-Za-z0-9_]{1,}\\.0$')
+and  param['nowSpm'] RLIKE '^[0-9]{1,}\\.[A-Za-z0-9_]{1,}\\.[0-9]{1,}\\.0\\.[0-9]{13}$'
+    group by 1,2,3,4,5,6;
+
+ insert overwrite table app_visit_enter_month
+select y,m,user_type,parent_column_id,count(distinct sn) user_count,count(1) as visit_count from events_type_log
+where events_type in('COLUMN_TYPE_PRODUCT','COLUMN_TYPE_SEARCH','PAGE_SPECIAL_DETAILS','PAGE_ALBUM_DETAILS')
+and concat(y,'-',m,'-',d)>='${startDate}' and  concat(y,'-',m,'-',d)<'${endDate}'
+and (param['afterSpm'] RLIKE '^[0-9A-Za-z0-9_]{1,}\\.[A-Za-z0-9_]{1,}\\.0\\.0\\.0' or param['afterSpm'] RLIKE '^[0-9A-Za-z0-9_]{1,}\\.[A-Za-z0-9_]{1,}\\.0$')
+and  param['nowSpm'] RLIKE '^[0-9]{1,}\\.[A-Za-z0-9_]{1,}\\.[0-9]{1,}\\.0\\.[0-9]{13}$'
+    group by 1,2,3,4;

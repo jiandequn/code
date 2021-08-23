@@ -1,0 +1,26 @@
+-- 进入数据库
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.vectorized.execution.enabled=false; --控制是否启用查询执行的向量模式
+set hive.groupby.orderby.position.alias=true; -- 启用别名对于groupby和orderby
+-- 统计月的数据
+insert overwrite table noapp_area_visit_count_week
+select y,w,user_type,area_code,sum(page_user_count) as page_user_count,sum(play_user_count) play_user_count,sum(play_count) as play_count,
+sum(duration) as duration from(
+select y,w,user_type,area_code,count(sn) page_user_count,
+0 as play_user_count,0 as duration,0 as play_count from
+(select year(date_sub(next_day(concat(y,'-',m,'-',d),'MO'),4)) as y,weekofyear(concat(y,'-',m,'-',d)) as w,
+user_type,sn,collect_set(area_code)[0] as area_code
+from events_type_log where concat(y,'-',m,'-',d)>='${startDate}' and concat(y,'-',m,'-',d)<'${endDate}'  group by 1,2,3,4) a
+group by 1,2,3,4
+UNION ALL
+select y,w,user_type,area_code,0 as page_user_count,
+count(1) as play_user_count, sum(duration) as duration,sum(play_count) as play_count
+from (select  year(date_sub(next_day(concat(y,'-',m,'-',d),'MO'),4)) as y,weekofyear(concat(y,'-',m,'-',d)) as w,
+user_type,user_id,collect_set(area_code)[0] as area_code,sum(1) as play_count,
+sum(duration) as duration
+ from app_album_play_log
+where concat(y,'-',m,'-',d)>='${startDate}' and concat(y,'-',m,'-',d)<'${endDate}'
+ group by 1,2,3,4 cluster by user_id,user_type) a
+group by 1,2,3,4) b
+group by 1,2,3,4

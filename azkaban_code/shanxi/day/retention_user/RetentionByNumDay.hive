@@ -1,0 +1,9 @@
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+--计算连续N日留存用户数RetentionByNumDay
+insert into app_retention_count_day
+select a.t_date,a.parent_column_id,a.user_type,count(1) as user_count
+ from(select '${startDate}' as t_date, parent_column_id,user_type,sn from events_type_log
+ where concat(y,'-',m,'-',d)>='${startDate}' and concat(y,'-',m,'-',d)<='${endDate}'
+group by parent_column_id,user_type,sn  having (datediff('${endDate}','${startDate}') = count(distinct concat(y,m,d))-1)
+) a group by a.t_date,a.parent_column_id,a.user_type

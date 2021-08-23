@@ -1,0 +1,18 @@
+#全量导入栏目信息
+sqoop import \
+--connect '%(db_url)s' \
+--username %(db_username)s \
+--password-file  %(db_pwdfile)s \
+--columns short_video_id,creator_id,name,labels,cp_id,content_type \
+--table t_short_video \
+--driver com.mysql.jdbc.Driver \
+--fields-terminated-by '\t' \
+--delete-target-dir \
+--target-dir '/%(hive_province)s/sqoop/short_video_tmp' \
+--hive-import \
+--hive-database %(hivedb)s \
+--hive-table short_video_tmp \
+--hive-overwrite \
+--outdir %(sqoop_outdir)s/mr_java
+
+#如果num-mappers设置多个，必须指定mysql表字段进行 --split-by 'parameter_value' \

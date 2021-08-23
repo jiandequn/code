@@ -1,0 +1,17 @@
+set hive.exec.parallel=true; 
+insert overwrite table t_column_management
+select t.column_id,t.column_code,t.column_name,t.parent_id from t_column_management a
+inner join t_column_management_tmp t on t.column_id=a.column_id
+union all
+select  t.column_id,t.column_code,t.column_name,t.parent_id from t_column_management_tmp t
+left join t_column_management a on a.column_id=t.column_id
+where a.column_id is null
+union all
+select  t.column_id,t.column_code,t.column_name,t.parent_id from t_column_management t
+left join t_column_management_tmp a on a.column_id=t.column_id
+where a.column_id is null;
+
+
+
+
+

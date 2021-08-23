@@ -1,0 +1,314 @@
+-- 进入数据库
+create database IF NOT EXISTS ${hive.database};
+use ${hive.database};
+--创建加载日志表，用于加载数据（external 外部表只能指定一个文件或目录，所以此处不可用）
+-- 数据结构 eventsType|eventsName|area|mac|sn|userId|ca|userType|parentColumnId|（中间随便定义参数）|createTime结束就行了
+drop table IF EXISTS source_logs;
+CREATE TABLE IF NOT EXISTS source_logs
+(
+ events_type STRING COMMENT '事件',
+ events_name STRING COMMENT '事件名称',
+ area_code STRING COMMENT '区域',
+ mac STRING COMMENT 'mac',
+ sn STRING,
+ user_id STRING,
+ ca STRING,
+ user_type STRING COMMENT '用户类型',
+ parent_column_id STRING COMMENT '产品ID',
+ data STRING COMMENT '扩展数据',
+ create_time STRING COMMENT '操作时间'
+)
+COMMENT '一级日志'
+PARTITIONED BY(y string,m string,d string)
+ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.RegexSerDe'
+WITH SERDEPROPERTIES (
+"input.regex" = "^.*eventsType=(.*);eventsName=(.*);area=(.*);mac=(.*);sn=(.*);userId=(.*);ca=(.*);userType=(OTT|VOD|ott|vod);parentColumnId=([0-9]+);(.*);createTime=(.{19}).*$",
+"output.format.string" = "%1$s %2$s %3$s $4$s %5$s %6$s %7$s %8$s %9$s %10$s %11$s"
+)
+location '/${hive.province}/hive/source_logs/';
+
+-- 创建分类信息表
+drop table IF EXISTS events_type_log;
+create table IF NOT EXISTS events_type_log(
+      events_name STRING COMMENT '事件名称',
+      area_code STRING COMMENT '区域',
+      mac STRING COMMENT 'mac',
+      sn STRING,
+      user_id STRING,
+      ca STRING,
+      user_type STRING COMMENT '用户类型',
+      parent_column_id STRING COMMENT '产品ID',
+      create_time string,
+      param map<string,string>
+)
+ COMMENT '分类信息表'
+ PARTITIONED BY (events_type string,y string,m string,d string)
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ COLLECTION ITEMS TERMINATED BY ','
+ MAP KEYS TERMINATED BY ':'
+ stored as textfile
+ location '/${hive.province}/hive/events_type_log';
+
+
+-- 需处理的parentColumnId
+drop table IF EXISTS product_column;
+create table IF NOT EXISTS product_column(
+     column_id INT,
+     column_name STRING,
+     user_type STRING,
+     start_date STRING,
+     end_date STRING
+)
+COMMENT '数据清洗中保留的专区'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/sqoop/filter/product_column';
+
+ -- 需清理的用户信息
+drop table IF EXISTS clean_user;
+create table IF NOT EXISTS clean_user(
+    id INT,
+    user_id STRING,
+    user_type STRING,
+    is_effective INT
+)COMMENT '清理用户信息表'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/sqoop/filter/clean_user';
+
+
+ -- 全量用户信息
+drop table IF EXISTS user_info;
+create table IF NOT EXISTS user_info(
+     parent_column_id string,
+     user_type string,
+     user_id string,
+     area_code string,
+     create_time string
+)
+COMMENT '用户数据'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/sqoop/user_info';
+
+
+drop table IF EXISTS t_column_management;
+create table IF NOT EXISTS t_column_management(
+     column_id INT,
+     column_code string,
+     column_name STRING,
+     parent_id STRING
+)
+COMMENT '栏目信息'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/sqoop/column_management';
+
+
+drop table IF EXISTS t_column_management_tmp;
+create table IF NOT EXISTS t_column_management_tmp(
+     column_id INT,
+     column_code string,
+     column_name STRING,
+     parent_id STRING
+)
+COMMENT '栏目信息'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/sqoop/tmp/column_management';
+
+ drop table IF EXISTS video;
+create table IF NOT EXISTS video(
+     video_id INT,
+     album_id INT,
+     video_name string,
+     video_duration String
+)
+COMMENT 'mysql剧集详情'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/sqoop/video';
+
+drop table IF EXISTS video_tmp;
+create table IF NOT EXISTS video_tmp(
+     video_id INT,
+     album_id INT,
+     video_name string,
+     video_duration String
+)
+COMMENT 'mysql剧集详情'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/sqoop/tmp/video';
+
+drop table IF EXISTS album;
+create table IF NOT EXISTS album(
+     album_id INT,
+     album_name string,
+     content_type INT,
+     labels STRING
+)
+COMMENT 'mysql专辑详情'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/sqoop/album';
+
+drop table IF EXISTS album_tmp;
+create table IF NOT EXISTS album_tmp(
+     album_id INT,
+     album_name string,
+     content_type INT,
+     labels STRING
+)
+COMMENT 'mysql专辑详情'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/sqoop/tmp/album';
+
+drop table IF EXISTS album_content_type;
+create table IF NOT EXISTS album_content_type(
+     content_type INT,
+     content_type_name string
+)
+COMMENT '专辑类型'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/sqoop/album_content_type';
+
+drop table IF EXISTS album_content_type_tmp;
+create table IF NOT EXISTS album_content_type_tmp(
+     content_type INT,
+     content_type_name string
+)
+COMMENT '专辑类型'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/sqoop/tmp/album_content_type';
+
+
+drop table IF EXISTS album_label_manager;
+create table IF NOT EXISTS album_label_manager(
+     label_id INT,
+     label_name string
+)
+COMMENT '专辑标签'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/sqoop/album_content_type';
+
+drop table IF EXISTS album_label_manager_tmp;
+create table IF NOT EXISTS album_label_manager_tmp(
+     label_id INT,
+     label_name string
+)
+COMMENT '专辑标签'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/sqoop/tmp/album_label_manager';
+
+
+drop table IF EXISTS app_user_stay_column_day;
+create table IF NOT EXISTS app_user_stay_column_day(
+     parent_column_Id string COMMENT '专区ID',
+     user_type string COMMENT '用户类型',
+     user_id string COMMENT '用户ID',
+     before_column_id INT COMMENT '停留栏目ID',
+     before_column_code string COMMENT '停留栏目Code',
+     stay_duration BIGINT COMMENT '停留时长'
+)
+ COMMENT '专区用户栏目停留时长'
+ PARTITIONED BY (y string comment '年',m string comment '月',d string comment '日')
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ stored as textfile
+ location '/${hive.province}/hive/page/stay_duration';
+
+drop table IF EXISTS app_album_play_log;
+create table IF NOT EXISTS app_album_play_log(
+      parent_column_id STRING COMMENT '产品ID',
+      user_id STRING,
+      user_type STRING COMMENT '用户类型',
+      area_code STRING COMMENT '区域',
+      album_id STRING COMMENT '专辑',
+      video_id STRING COMMENT '剧集',
+      duration bigint COMMENT '播放时长',
+      create_time STRING COMMENT '播放时间'
+)
+ COMMENT '分类信息表'
+ PARTITIONED BY (y string,m string,d string)
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ COLLECTION ITEMS TERMINATED BY ','
+ MAP KEYS TERMINATED BY ':'
+ stored as textfile
+ location '/${hive.province}/hive/app_album_play_log';
+
+
+
+drop table IF EXISTS app_album_play_log_tmp;
+create table IF NOT EXISTS app_album_play_log_tmp(
+      parent_column_id STRING COMMENT '产品ID',
+      user_id STRING,
+      user_type STRING COMMENT '用户类型',
+      area_code STRING COMMENT '区域',
+      album_id STRING COMMENT '专辑',
+      video_id STRING COMMENT '剧集',
+      tdata STRING COMMENT '播放时长'
+)
+ COMMENT '分类信息表'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ COLLECTION ITEMS TERMINATED BY ','
+ MAP KEYS TERMINATED BY ':'
+ stored as textfile
+ location '/${hive.province}/hive/tmp/app_album_play_log';
+
+drop table IF EXISTS app_album_play_log;
+create table IF NOT EXISTS app_album_play_log(
+      parent_column_id STRING COMMENT '产品ID',
+      user_id STRING,
+      user_type STRING COMMENT '用户类型',
+      area_code STRING COMMENT '区域',
+      album_id STRING COMMENT '专辑',
+      video_id STRING COMMENT '剧集',
+      duration bigint COMMENT '播放时长',
+      create_time STRING COMMENT '播放时间'
+)
+ COMMENT '分类信息表'
+ PARTITIONED BY (y string,m string,d string)
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ COLLECTION ITEMS TERMINATED BY ','
+ MAP KEYS TERMINATED BY ':'
+ stored as textfile
+ location '/${hive.province}/hive/app_album_play_log';
+
+drop table IF EXISTS ott_album_play_log_tmp;
+create table IF NOT EXISTS ott_album_play_log_tmp(
+      parent_column_id STRING COMMENT '产品ID',
+      user_id STRING,
+      user_type STRING COMMENT '用户类型',
+      area_code STRING COMMENT '区域',
+      tdata STRING COMMENT '播放时长'
+)
+ COMMENT '播放信息汇总信息表'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY '\t'
+ COLLECTION ITEMS TERMINATED BY ','
+ MAP KEYS TERMINATED BY ':'
+ stored as textfile
+ location '/${hive.province}/hive/tmp/ott_album_play_log_tmp';

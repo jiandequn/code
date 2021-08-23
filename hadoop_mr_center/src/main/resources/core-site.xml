@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+
+<!-- Put site-specific property overrides in this file. -->
+
+<configuration>
+
+	<!--hdfs临时路径-->
+	<property>
+    		<name>hadoop.tmp.dir</name>
+    		<value>/data/hadoop_d/tmp</value>
+	</property>
+        <property>
+                <name>hadoop.http.staticuser.user</name>
+                <value>root</value>
+        </property>
+	<!--hdfs 的默认地址、端口 访问地址-->
+	<property>
+    		<name>fs.defaultFS</name>
+    		<value>hdfs://hadoop-cluster</value>
+	</property>
+	<!--客户端连接重试次数-->
+	<property>
+    		<name>ipc.client.connect.max.retries</name>
+    		<value>100</value>
+	</property>
+	<property>
+    		<name>ipc.client.connect.retry.interval</name>
+    		<value>10000</value>
+	</property>
+	<property>
+    		<name>io.file.buffer.size</name>
+    		<value>131072</value>
+	</property>
+        <property>
+                <name>fs.trash.checkpoint.interval</name>
+                <value>0</value>
+        </property>
+    	<property>
+        	<name>fs.trash.interval</name>
+        	<value>1440</value>
+    	</property>
+</configuration>

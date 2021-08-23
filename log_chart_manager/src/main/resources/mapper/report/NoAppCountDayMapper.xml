@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ppfuns.report.mapper.NoappCountDayMapper">
+    <select id="selectSourceData" resultType="com.ppfuns.report.entity.NoappCountDay">
+    select t_date,user_type,sum(visit_user_count) as visit_user_count,sum(play_user_count) as play_user_count,sum(play_count) as play_count
+        ,sum(duration) as duration,sum(add_user_count) as add_user_count from(
+        select t_date,user_type,sum(page_user_count) as visit_user_count,sum(play_user_count) as play_user_count,sum(play_count) as play_count
+        ,sum(duration) as duration,0 as add_user_count from noapp_area_visit_count_day where t_date &lt;#{endDate} and t_date &gt;= #{startDate}
+        group by t_date,user_type
+        union all
+        select SUBSTR(create_time, 1, 10) AS t_date,user_type,0 as visit_user_count,0 as play_user_count,0 as play_count
+        ,0 as duration,count(1) as add_user_count from(
+        select user_type,user_id,max(area_code) as area_code,min(create_time) as create_time from user_info
+        group by user_type,user_id) t
+        where create_time &lt;#{endDate} and create_time &gt;= #{startDate}
+        group by t_date,user_type)a group by t_date,user_type
+    </select>
+    <select id="selectTotalVisitUserCount" resultType="com.ppfuns.report.entity.NoappCountDay">
+          select user_type,
+          count(distinct user_id) as total_visit_user_count from user_info where create_time &lt;=#{endDate}
+        group by user_type
+    </select>
+    <sql id="selectMergeListSql">
+        <if test="countFlag==3">
+            select t_date,user_type,sum(visit_user_count) as visit_user_count,sum(play_user_count) as
+            play_user_count,
+            sum(play_count) as play_count,sum(duration) as duration,sum(add_user_count) as
+            add_user_count,sum(total_visit_user_count) as total_visit_user_count,
+            sum(user_2day_count) as user_2day_count,sum(user_3day_count) as user_3day_count
+            from(
+        </if>
+        <if test="countFlag==1 or countFlag==3">
+            select
+            t_date,user_type,visit_user_count,play_user_count,play_count,duration,add_user_count,total_visit_user_count,
+            0 as user_2day_count,0 as user_3day_count from noapp_count_day where ${ew.expression.normal.sqlSegment}
+        </if>
+        <if test="countFlag==3">
+            UNION ALL
+        </if>
+        <if test="countFlag==2 or countFlag==3">
+            select t_date,user_type,0 as visit_user_count,0 as play_user_count,0 as play_count,0 as
+            duration,
+            0 as add_user_count,0 as total_visit_user_count,user_2day_count,user_3day_count
+            from noapp_retention_user_count_day where ${ew.expression.normal.sqlSegment}
+        </if>
+        <if test="countFlag==3">
+            ) a group by t_date,user_type
+        </if>
+        ${ew.expression.orderBy.sqlSegment}
+    </sql>
+    <select id="mergeList" resultType="com.ppfuns.report.entity.NoappCountDay">
+        <include refid="selectMergeListSql"/>
+    </select>
+    <select id="mergePage" resultType="com.ppfuns.report.entity.NoappCountDay">
+        <include refid="selectMergeListSql"/>
+    </select>
+</mapper>

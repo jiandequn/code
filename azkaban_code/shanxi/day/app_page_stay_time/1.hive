@@ -1,0 +1,44 @@
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.groupby.orderby.position.alias=true; -- 启用别名对于groupby和orderby
+add jar day/app_page_stay_time/hive_demo-1.0.0.jar;
+drop function IF EXISTS spm_to_map;
+create temporary function spm_to_map as 'com.ppfuns.udf.SpmToMapUDF';
+insert overwrite table app_user_stay_column_day partition(y,m,d)
+select parent_column_id,user_type,user_id,after_map["before_column_id"] as before_column_id,after_map["before_column_code"] as before_column_code,sum(after_map["stay_duration"]) as stay_duration,y,m,d from(
+select parent_column_id,user_type,sn as user_id,param["columnId"]as column_id,param["pos"] as pos,param["posName"] as pos_name,spm_to_map(param["nowSpm"],param["afterSpm"]) as after_map,y,m,d from events_type_log
+where param["nowSpm"] RLIKE '^[0-9]{1,}\\.[A-Za-z0-9_]{1,}\\.[0-9]{1,}\\.[0-9]{1,}\\.[0-9]{13}'
+and param["afterSpm"] RLIKE '^[0-9]{1,}\\.[A-Za-z0-9_]{1,}\\.[0-9]{1,}\\.[0-9]{1,}\\.[0-9]{13}'
+and  concat(y,'-',m,'-',d)>='${startDate}' and  concat(y,'-',m,'-',d)<'${endDate}'
+) a group by 1,2,3,4,5,7,8,9;
+
+-- 统计专区人均留存时长（H）
+truncate table app_stay_duration;
+insert overwrite table app_stay_duration
+select '${endDate}' as t_date, parent_column_id,count(distinct user_id) user_count,sum(stay_duration) as stay_duration from app_user_stay_column_day
+where concat(y,'-',m,'-',d)<'${endDate}'
+group by parent_column_id;
+
+--统计各个栏目的的停留时长
+truncate table app_column_stay_duration;
+insert overwrite table app_column_stay_duration
+select '${endDate}' as t_date, a.parent_column_id,before_column_id,before_column_code,t.column_name as before_column_name, user_count,stay_duration from(
+select  parent_column_id,before_column_id,concat_ws(',',collect_set(before_column_code)) as before_column_code,count(distinct user_id) user_count,sum(stay_duration) as stay_duration from app_user_stay_column_day
+where concat(y,'-',m,'-',d)<'${endDate}'
+group by parent_column_id,before_column_id) a
+left join t_column_management t on t.column_id=a.before_column_id;
+
+
+--统计专区按日人均停留时长
+insert overwrite table app_stay_duration_day
+select concat(y,'-',m,'-',d) as t_date, parent_column_id,count(distinct user_id) user_count,sum(stay_duration) as stay_duration from app_user_stay_column_day
+where concat(y,'-',m,'-',d)>='${startDate}' and  concat(y,'-',m,'-',d)<'${endDate}'
+group by 1,parent_column_id;
+
+-- 按日统计各个栏目的的停留时长
+insert overwrite table app_column_stay_duration_day
+select t_date, a.parent_column_id,before_column_id,before_column_code,t.column_name as before_column_name, user_count,stay_duration from(
+select concat(y,'-',m,'-',d) as t_date, parent_column_id,before_column_id,concat_ws(',',collect_set(before_column_code)) as before_column_code,count(distinct user_id) user_count,sum(stay_duration) as stay_duration from app_user_stay_column_day
+where concat(y,'-',m,'-',d)>='${startDate}' and  concat(y,'-',m,'-',d)<'${endDate}'
+group by 1, parent_column_id,before_column_id) a
+left join t_column_management t on t.column_id=a.before_column_id;

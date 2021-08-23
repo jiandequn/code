@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ppfuns.dao.RunClassDao" >
+
+    <sql id="runClassColumns">
+         id,name,title,run_type as runType,is_effective as isEffective,create_time as createTime
+    </sql>
+    <select id="select" resultType="com.ppfuns.entity.table.RunClassEntity">
+        SELECT <include refid="runClassColumns"/>  FROM run_class where 1=1
+        <if test="isEffective != null and isEffective !=''">
+            AND is_effective = #{isEffective}
+        </if>
+    </select>
+    <select id="selectById" resultType="com.ppfuns.entity.table.RunClassEntity">
+        SELECT <include refid="runClassColumns"/>  FROM run_class where id=#{id}
+    </select>
+    <update id="del">
+        DELETE FROM run_class  where id=#{id}  and is_effective=0
+    </update>
+    <update id="update">
+        UPDATE run_class
+        <set>
+            <if test="isEffective != null">
+                is_effective = #{isEffective},
+            </if>
+            <if test="name != null">
+                name = #{name},
+            </if>
+            <if test="title != null">
+                title = #{title},
+            </if>
+            <if test="runType != null">
+                run_type = #{runType},
+            </if>
+            <if test="isEffective != null and isEffective !=''">
+                is_effective = #{isEffective},
+            </if>
+        </set>
+        where id=#{id}
+    </update>
+    <insert id="insert">
+      INSERT INTO run_class (name, title, run_type, is_effective) VALUES (#{name}, #{title}, #{runType}, #{isEffective});
+    </insert>
+    <select id="getList" resultType="com.ppfuns.entity.table.RunClassEntity">
+        SELECT <include refid="runClassColumns"/> from run_class WHERE 1=1
+        <if test="t != null">
+            <if test="t.isEffective != null and t.isEffective !=''">
+                AND is_effective = #{t.isEffective}
+            </if>
+        </if>
+        limit #{pageIndex},#{pageSize}
+    </select>
+    <select id="getCount" resultType="java.lang.Integer">
+        SELECT count(1) from run_class WHERE 1=1
+        <if test="t != null">
+            <if test="t.isEffective != null and t.isEffective !=''">
+                AND is_effective = #{t.isEffective}
+            </if>
+        </if>
+
+    </select>
+    <select id="getCanRun" resultType="com.ppfuns.entity.table.RunClassEntity">
+         SELECT
+            run_type AS runType,
+            GROUP_CONCAT(NAME) AS NAME
+        FROM
+            run_class
+        WHERE 1=1
+        <if test="ids != null">
+            AND  FIND_IN_SET(id, #{ids})
+        </if>
+            and is_effective=1
+        GROUP BY
+            run_type
+    </select>
+</mapper>

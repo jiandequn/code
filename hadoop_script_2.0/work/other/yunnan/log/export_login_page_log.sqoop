@@ -1,0 +1,20 @@
+sqoop eval \
+--connect '%(db_url)s' \
+--username %(db_username)s \
+--password-file  %(db_pwdfile)s \
+--metadata-transaction-isolation-level 'TRANSACTION_REPEATABLE_READ' \
+--query "delete from login_page_log where 1=1"
+
+sqoop export \
+--connect '%(db_url)s' \
+--username %(db_username)s \
+--password-file  %(db_pwdfile)s \
+--export-dir /%(hive_province)s/hive/log/login_page_log \
+--table login_page_log \
+--columns parent_column_id,user_type,mac,sn,user_id,column_id,after_column_id,after_column_code,after_column_name,area_code,create_time \
+--update-key t_date,parent_column_id,album_id \
+--update-mode allowinsert \
+--input-null-string '\\N'  \
+--input-null-non-string '\\N' \
+--input-fields-terminated-by '\t' \
+--outdir %(sqoop_outdir)s/mr_java

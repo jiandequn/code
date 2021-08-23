@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head th:include="layout :: htmlhead" th:with="title='权限管理'"></head>
+<script src="/js/sys/permList.js"></script>
+<script src="/js/sys/common.js"></script>
+<body class="layui-layout-body" style="height: 1000px;">
+<!--<div class="layui-layout layui-layout-admin layout-body" style="height: 1000px;">-->
+    <div class="demoTable">
+        &nbsp;&nbsp;
+        <button shiro:hasPermission="sys_permission:add" class="layui-btn" onclick="addPerm('{{r.id}}',0)">新增权限</button>
+    </div>
+    <table id="permTable" class="layui-hide" lay-filter="permTable"></table>
+
+<!--</div>-->
+
+</body>
+<!--添加或编辑权限-->
+<div id="updatePerm" class="layer_self_wrap" style="display:none;">
+    <form id="permForm" class="layui-form layui-form-pane" method="post" action="" style="margin-top: 20px;"
+          lay-filter="permFormValue">
+        <input id="opType" type="hidden" name="opType"/>
+        <input id="parentId" type="hidden" name="parentId"/>
+        <input id="id" type="hidden" name="id"/>
+        <div class="layui-form-item">
+            <label class="layui-form-label">权限名称</label>
+            <div class="layui-input-inline">
+                <input name="name" lay-verify="required" autocomplete="off" class="layui-input" type="text"/>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">权限分类</label>
+            <div class="layui-input-block">
+                <input name="type" value="0" title="菜单" checked type="radio" id="type_0"/>
+                <input name="type" value="1" title="功能" type="radio" id="type_1"/>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">权限路径</label>
+            <div class="layui-input-inline">
+                <input name="path" lay-verify="required" autocomplete="off" class="layui-input" type="text"/>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">权限code</label>
+            <div class="layui-input-inline">
+                <input name="code" lay-verify="required" autocomplete="off" class="layui-input" type="text"/>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">权限优先级</label>
+            <div class="layui-input-inline">
+                <input name="seq" autocomplete="off" class="layui-input" type="text"
+                       onkeyup="this.value=this.value.replace(/\D/g,'')"
+                       onafterpaste="this.value=this.value.replace(/\D/g,'')"/>
+            </div>
+            <div class="layui-form-mid layui-word-aux">请填写大于0的整数数字</div>
+        </div>
+
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">描述</label>
+            <div class="layui-input-block">
+                <textarea name="descpt" placeholder="请输入内容" class="layui-textarea"></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block" style="margin-left: 10px;">
+                <button shiro:hasPermission="sys_permission:update" class="layui-btn" lay-submit="" lay-filter="permSubmit">提交</button>
+                <button shiro:lacksPermission="sys_permission:update" class="layui-btn layui-btn-disabled" lay-submit="" lay-filter="permSubmit">提交</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </form>
+</div>
+</html>

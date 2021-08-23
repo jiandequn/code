@@ -1,0 +1,15 @@
+set hive.exec.parallel=true; 
+
+insert overwrite table t_subject
+select t.subject_id,t.subject_name,t.data_type,t.column_id from t_subject a
+inner join t_subject_tmp t on t.subject_id=a.subject_id
+union all
+select  t.subject_id,t.subject_name,t.data_type,t.column_id from t_subject_tmp t
+left join t_subject a on a.subject_id=t.subject_id
+where a.subject_id is null
+union all
+select  t.subject_id,t.subject_name,t.data_type,t.column_id from t_subject t
+left join t_subject_tmp a on a.subject_id=t.subject_id
+where a.subject_id is null;
+
+
