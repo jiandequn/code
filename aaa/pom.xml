@@ -12,7 +12,7 @@
 	<j2se.version>1.6</j2se.version>
 	<lucene.version>4.4.0</lucene.version>
 	  <!-- spring版本号 -->
-	  <springframework.version>4.1.6.RELEASE</springframework.version>
+	  <springframework.version>5.3.19</springframework.version>
 	  <!-- mybatis版本号 -->
 	  <mybatis.version>3.2.6</mybatis.version>
 	  <!-- log4j日志文件管理包版本 -->
